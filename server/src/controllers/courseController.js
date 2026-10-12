@@ -1,0 +1,233 @@
+const Course = require('../models/Course');
+const Category = require('../models/Category');
+const Entitlement = require('../models/Entitlement');
+const { sendSuccess, sendError } = require('../utils/responseHelper');
+
+// Public: Get all courses with filters and pagination
+const getCourses = async (req, res, next) => {
+  try {
+    const { division, category, search, page = 1, limit = 12, mode, featured } = req.query;
+    const query = { isPublished: true };
+
+    if (division) {
+      query.division = division.toUpperCase();
+    }
+
+    if (category) {
+      // Find category by slug or id
+      const cat = await Category.findOne({
+        $or: [{ slug: category.toLowerCase() }, { _id: category.match(/^[0-9a-fA-F]{24}$/) ? category : null }],
+      });
+      if (cat) {
+        query.categoryId = cat._id;
+      }
+    }
+
+    if (mode && mode !== 'ALL') {
+      query.mode = { $in: [mode, 'BOTH'] };
+    }
+
+    if (featured === 'true') {
+      query.isFeatured = true;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { shortDescription: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } },
+      ];
+    }
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const total = await Course.countDocuments(query);
+    const courses = await Course.find(query)
+      .populate('categoryId', 'name slug icon color division')
+      .sort({ isFeatured: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    return sendSuccess(res, 'Courses retrieved', {
+      courses,
+      pagination: {
+        total,
+        page: parseInt(page, 10),
+        pages: Math.ceil(total / parseInt(limit, 10)) || 1,
+        limit: parseInt(limit, 10),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Public: Get course details by slug (with personalized entitlement status if logged in)
+const getCourseBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const course = await Course.findOne({ slug, isPublished: true })
+      .populate('categoryId', 'name slug icon color division');
+
+    if (!course) {
+      return sendError(res, 'Course not found', 404);
+    }
+
+    let isEnrolled = false;
+    let entitlement = null;
+
+    if (req.user) {
+      const activeEntitlement = await Entitlement.findOne({
+        studentId: req.user._id,
+        itemId: course._id,
+        isActive: true,
+        validUntil: { $gte: new Date() },
+      });
+
+      if (activeEntitlement) {
+        isEnrolled = true;
+        entitlement = activeEntitlement;
+      }
+    }
+
+    return sendSuccess(res, 'Course details retrieved', {
+      course,
+      userAccess: {
+        isEnrolled,
+        entitlement,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Public: Get all active categories by division
+const getCategories = async (req, res, next) => {
+  try {
+    const { division } = req.query;
+    const query = { isActive: true };
+    if (division) {
+      query.division = division.toUpperCase();
+    }
+
+    const categories = await Category.find(query).sort({ sortOrder: 1, name: 1 });
+    return sendSuccess(res, 'Categories retrieved', categories);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin: Create course
+const createCourse = async (req, res, next) => {
+  try {
+    const {
+      title,
+      slug,
+      division,
+      categoryId,
+      shortDescription,
+      fullDescription,
+      thumbnail,
+      mode,
+      duration,
+      batchSchedule,
+      fee,
+      originalPrice,
+      validityDays,
+      isDemoEligible,
+      demoLessonsCount,
+      demoExamsCount,
+      syllabus,
+      learningObjectives,
+      faculty,
+      features,
+      faqs,
+      seoTitle,
+      seoDescription,
+      tags,
+      isFeatured,
+    } = req.body;
+
+    const courseSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    const existing = await Course.findOne({ slug: courseSlug });
+    if (existing) {
+      return sendError(res, 'A course with this slug already exists', 400);
+    }
+
+    const course = await Course.create({
+      title,
+      slug: courseSlug,
+      division,
+      categoryId,
+      shortDescription,
+      fullDescription,
+      thumbnail,
+      mode: mode || 'BOTH',
+      duration: duration || '3 Months',
+      batchSchedule: batchSchedule || 'Daily Live & Interactive Batches',
+      fee: Number(fee),
+      originalPrice: originalPrice ? Number(originalPrice) : fee,
+      validityDays: validityDays || 180,
+      isDemoEligible: isDemoEligible !== undefined ? isDemoEligible : true,
+      demoLessonsCount: demoLessonsCount || 2,
+      demoExamsCount: demoExamsCount || 1,
+      syllabus: syllabus || [],
+      learningObjectives: learningObjectives || [],
+      faculty: faculty || [],
+      features: features || [],
+      faqs: faqs || [],
+      seoTitle: seoTitle || `${title} - Ranvi Institutions`,
+      seoDescription: seoDescription || shortDescription,
+      tags: tags || [],
+      isFeatured: isFeatured || false,
+    });
+
+    return sendSuccess(res, 'Course created successfully', course, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin: Update course
+const updateCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
+    const course = await Course.findOneAndUpdate(query, req.body, { new: true, runValidators: true });
+    if (!course) {
+      return sendError(res, 'Course not found', 404);
+    }
+    return sendSuccess(res, 'Course updated successfully', course);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin: Delete course
+const deleteCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
+    const course = await Course.findOne(query);
+    if (!course) {
+      return sendError(res, 'Course not found', 404);
+    }
+    // Soft delete or unpublish
+    course.isPublished = false;
+    await course.save();
+    return sendSuccess(res, 'Course unpublished successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+module.exports = {
+  getCourses,
+  getCourseBySlug,
+  getCategories,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+};
