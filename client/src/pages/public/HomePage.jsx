@@ -29,6 +29,7 @@ import {
   MonitorPlay,
   ClipboardList,
   MessageSquare,
+  MessageSquareQuote,
   UserCheck,
   Calendar,
   Clock,
@@ -127,41 +128,45 @@ export const HomePage = () => {
     tagline: 'Learn • Excel • Achieve',
   };
 
-  const bankersSection = settings?.bankersPathSection || {
-    title: "Banker's Path",
-    subtitle: 'Banking • Insurance • Finance Career Programs',
-    description:
-      'Specialized professional coaching for banking employees, insurance professionals, and candidates pursuing career growth, certifications, and promotional examinations in the financial services sector.',
-    tiles: [
-      { name: 'JAIIB', path: '/courses/jaiib-master-class-2026', bg: 'from-[#0B63C5] to-[#084E9E]', subtitle: 'IE&IFS • PPB • AFM • RBWM' },
-      { name: 'CAIIB', path: '/courses/caiib-advanced-comprehensive-batch', bg: 'from-[#D32F2F] to-[#B71C1C]', subtitle: 'ABM • BFM • ABFM • BRBL' },
-      { name: 'DBF', path: '/bankers-path', bg: 'from-[#0F8A4B] to-[#0B6A39]', subtitle: 'Banking Diploma for Aspirants' },
-      { name: 'DTM', path: '/bankers-path', bg: 'from-[#E58A00] to-[#C77500]', subtitle: 'Treasury & Risk Management' },
-      { name: 'AMFI', path: '/bankers-path', bg: 'from-[#8E24AA] to-[#6A1B9A]', subtitle: 'Mutual Fund Certification' },
-      { name: 'NISM (SEBI)', path: '/bankers-path', bg: 'from-[#1976D2] to-[#1565C0]', subtitle: 'Securities Market Modules' },
-      { name: 'IRDAI', path: '/bankers-path', bg: 'from-[#E91E63] to-[#C2185B]', subtitle: 'Insurance Regulatory Exams' },
-      { name: 'DRA', path: '/bankers-path', bg: 'from-[#00897B] to-[#00695C]', subtitle: 'Debt Recovery Agent IIBF' },
-    ],
+  const defaultBankersTiles = [
+    { name: 'JAIIB', path: '/courses/jaiib-master-class-2026', bg: 'from-[#0066CC] to-[#004C99]', arrowColor: 'text-[#0066CC]' },
+    { name: 'CAIIB', path: '/courses/caiib-advanced-comprehensive-batch', bg: 'from-[#E52D27] to-[#B31217]', arrowColor: 'text-[#D32F2F]' },
+    { name: 'DBF', path: '/bankers-path?category=DBF', bg: 'from-[#00A86B] to-[#008050]', arrowColor: 'text-[#00A86B]' },
+    { name: 'DTM', path: '/bankers-path?category=DTM', bg: 'from-[#F2A900] to-[#D48800]', arrowColor: 'text-[#D48800]' },
+    { name: 'AMFI', path: '/bankers-path?category=AMFI', bg: 'from-[#8E24AA] to-[#6A1B9A]', arrowColor: 'text-[#8E24AA]' },
+    { name: 'NISM (SEBI)', path: '/bankers-path?category=NISM', bg: 'from-[#1E90FF] to-[#0066CC]', arrowColor: 'text-[#1976D2]' },
+    { name: 'IRDAI', path: '/bankers-path?category=IRDAI', bg: 'from-[#E91E63] to-[#C2185B]', arrowColor: 'text-[#E91E63]' },
+    { name: 'DRA', path: '/bankers-path?category=DRA', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
+  ];
+
+  const bankersSection = {
+    title: settings?.bankersPathSection?.title || "Banker's Path",
+    subtitle: settings?.bankersPathSection?.subtitle || 'Banking • Insurance • Finance Career Programs',
+    buttonText: settings?.bankersPathSection?.buttonText || 'View All',
+    buttonLink: settings?.bankersPathSection?.buttonLink || '/bankers-path',
+    tiles: defaultBankersTiles,
   };
 
-  const competitiveSection = settings?.competitiveSection || {
-    title: 'Competitive Exams Coaching',
-    subtitle: 'Build Your Career. Prepare with Confidence.',
-    description:
-      'Comprehensive coaching for banking recruitment (IBPS, SBI, RBI), government staff selection (SSC), railways (RRB), insurance, defence, police, and state competitive examinations.',
-    tiles: [
-      { name: 'IBPS', path: '/competitive-exams' },
-      { name: 'SBI', path: '/competitive-exams' },
-      { name: 'RBI', path: '/competitive-exams' },
-      { name: 'SSC', path: '/competitive-exams' },
-      { name: 'RAILWAYS', path: '/competitive-exams' },
-      { name: 'LIC', path: '/competitive-exams' },
-      { name: 'POLICE', path: '/competitive-exams' },
-      { name: 'DEFENCE', path: '/competitive-exams' },
-      { name: 'TEACHING', path: '/competitive-exams' },
-      { name: 'STATE GOVT', path: '/competitive-exams' },
-      { name: 'OTHER EXAMS', path: '/competitive-exams' },
-    ],
+  const defaultCompTiles = [
+    { name: 'IBPS', path: '/competitive-exams?cat=IBPS', bg: 'from-[#1E88E5] to-[#1565C0]', arrowColor: 'text-[#1976D2]' },
+    { name: 'SBI', path: '/competitive-exams?cat=SBI', bg: 'from-[#E53935] to-[#C62828]', arrowColor: 'text-[#E53935]' },
+    { name: 'RBI', path: '/competitive-exams?cat=RBI', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
+    { name: 'SSC', path: '/competitive-exams?cat=SSC', bg: 'from-[#EF6C00] to-[#E65100]', arrowColor: 'text-[#EF6C00]' },
+    { name: 'RAILWAYS', path: '/competitive-exams?cat=RAILWAYS', bg: 'from-[#7B1FA2] to-[#6A1B9A]', arrowColor: 'text-[#7B1FA2]' },
+    { name: 'LIC', path: '/competitive-exams?cat=LIC', bg: 'from-[#1565C0] to-[#0D47A1]', arrowColor: 'text-[#1565C0]' },
+    { name: 'POLICE', path: '/competitive-exams?cat=POLICE', bg: 'from-[#D81B60] to-[#C2185B]', arrowColor: 'text-[#D81B60]' },
+    { name: 'DEFENCE', path: '/competitive-exams?cat=DEFENCE', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
+    { name: 'TEACHING', path: '/competitive-exams?cat=TEACHING', bg: 'from-[#F59E0B] to-[#D97706]', arrowColor: 'text-[#D97706]' },
+    { name: 'STATE GOVT', path: '/competitive-exams?cat=STATE GOVT', bg: 'from-[#5E35B1] to-[#4527A0]', arrowColor: 'text-[#5E35B1]' },
+    { name: 'OTHER EXAMS', path: '/competitive-exams?cat=ALL', bg: 'from-[#558B2F] to-[#33691E]', arrowColor: 'text-[#558B2F]' },
+  ];
+
+  const competitiveSection = {
+    title: settings?.competitiveSection?.title || settings?.competitiveExamsSection?.title || 'All Competitive Exams Coaching',
+    subtitle: settings?.competitiveSection?.subtitle || settings?.competitiveExamsSection?.subtitle || 'Government Jobs • Banking • Railways • Insurance • Defence & More',
+    buttonText: settings?.competitiveSection?.buttonText || 'View All',
+    buttonLink: settings?.competitiveSection?.buttonLink || '/competitive-exams',
+    tiles: defaultCompTiles,
   };
 
   const actionHubs = settings?.quickActionHubs || [
@@ -299,139 +304,92 @@ export const HomePage = () => {
       {/* ========================================================
           1. HERO BANNER (100% DYNAMIC VIA ADMIN SETTINGS)
       ======================================================== */}
-      <section className="relative bg-gradient-to-br from-[#0B1E3D] via-[#12356B] to-[#0A1A33] text-white pt-6 pb-0 overflow-hidden shadow-2xl">
-        {/* Ambient Decorative Lighting */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#1769D2]/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-10 left-10 w-72 h-72 bg-[#F4B942]/10 rounded-full blur-3xl pointer-events-none"></div>
+      {/* ========================================================
+          1. HERO BANNER (MATCHING REFERENCE BANNER EXACTLY)
+      ======================================================== */}
+      <section className="relative w-full overflow-hidden bg-[#081A36] text-white shadow-2xl">
+        {/* Background Banner Image with Student & Academic Setting */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/assets/hero-banner.png"
+            alt="Ranvi Institutions Hero Banner"
+            className="w-full h-full object-cover object-right lg:object-right"
+          />
+          {/* Seamless Deep Navy Gradient Mask to Ensure High Contrast & Crisp Typography */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#081A36] via-[#081A36]/95 via-40% to-transparent sm:via-[#081A36]/90 sm:via-48% lg:via-[#081A36]/80 lg:via-55% xl:via-[#081A36]/70"></div>
+        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left Hero Content */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left py-4 sm:py-10">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/15 text-xs font-bold text-[#F4B942] shadow-inner">
-                <Sparkles className="w-4 h-4" />
-                <span>{hero.badgeText}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-12 lg:pt-16 pb-10 sm:pb-14 lg:pb-20">
+          <div className="max-w-2xl text-left space-y-6 sm:space-y-8">
+            {/* Main Headline Recreating the Reference Typography */}
+            <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black font-serif tracking-tight leading-[1.12] text-white drop-shadow-md">
+              {hero.headline === 'Build Your Banking & Government Career with Us' || !hero.headline ? (
+                <>
+                  Build Your<br />
+                  <span className="text-[#F4B942]">Banking & Government</span><br />
+                  Career with Us
+                </>
+              ) : hero.highlightWord && hero.headline.includes(hero.highlightWord) ? (
+                <>
+                  {hero.headline.split(hero.highlightWord)[0]}
+                  <span className="text-[#F4B942]">{hero.highlightWord}</span>
+                  {hero.headline.split(hero.highlightWord).slice(1).join(hero.highlightWord)}
+                </>
+              ) : (
+                hero.headline
+              )}
+            </h1>
+
+            {/* 4 Feature Icons Row Exactly Like Reference Banner */}
+            <div className="grid grid-cols-4 gap-1 sm:gap-4 max-w-lg">
+              {/* Feature 1: Expert Faculty */}
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-2 flex items-center justify-center">
+                  <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F4B942] fill-[#F4B942] absolute inset-0 m-auto translate-y-[-1px]" />
+                </div>
+                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                  Expert<br />Faculty
+                </span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight font-heading leading-tight text-white">
-                {hero.highlightWord && hero.headline && hero.headline.includes(hero.highlightWord) ? (
-                  <>
-                    {hero.headline.split(hero.highlightWord)[0]}
-                    <span className="text-[#F4B942]">{hero.highlightWord}</span>
-                    {hero.headline.split(hero.highlightWord).slice(1).join(hero.highlightWord)}
-                  </>
-                ) : (
-                  hero.headline
-                )}
-              </h1>
-
-              <p className="text-sm sm:text-base text-blue-100 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
-                {hero.subheadline}
-              </p>
-
-              {/* 4 Feature Icon Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 max-w-xl mx-auto lg:mx-0">
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 transition-all hover:-translate-y-1 shadow-sm">
-                  <ShieldCheck className="w-6 h-6 text-[#F4B942] mb-1.5 shrink-0" />
-                  <span className="text-xs font-bold text-white">Expert Faculty</span>
+              {/* Feature 2: Updated Study Material */}
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-2 flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
                 </div>
-
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 transition-all hover:-translate-y-1 shadow-sm">
-                  <BookOpen className="w-6 h-6 text-[#F4B942] mb-1.5 shrink-0" />
-                  <span className="text-xs font-bold text-white">Updated Material</span>
-                </div>
-
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 transition-all hover:-translate-y-1 shadow-sm">
-                  <MonitorPlay className="w-6 h-6 text-[#F4B942] mb-1.5 shrink-0" />
-                  <span className="text-xs font-bold text-white">Live & Recorded</span>
-                </div>
-
-                <div className="flex flex-col items-center lg:items-start text-center lg:text-left p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/20 transition-all hover:-translate-y-1 shadow-sm">
-                  <Users className="w-6 h-6 text-[#F4B942] mb-1.5 shrink-0" />
-                  <span className="text-xs font-bold text-white">Personal Mentorship</span>
-                </div>
+                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                  Updated<br />Study Material
+                </span>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-3">
-                <Link
-                  to={hero.primaryCtaLink || '/bankers-path'}
-                  className="bg-[#F4B942] hover:bg-amber-300 text-[#0B1E3D] font-black px-7 py-3.5 rounded-xl text-sm sm:text-base shadow-lg shadow-amber-400/20 transition-all hover:scale-105 flex items-center gap-2"
-                >
-                  {hero.primaryCtaText || "Explore Banker's Path"} <ArrowRight className="w-4 h-4" />
-                </Link>
-
-                <Link
-                  to={hero.secondaryCtaLink || '/enquiry'}
-                  className="bg-white/15 hover:bg-white/25 text-white font-bold px-6 py-3.5 rounded-xl text-sm sm:text-base border border-white/20 transition-all backdrop-blur-md flex items-center gap-2"
-                >
-                  <PlayCircle className="w-5 h-5 text-[#F4B942]" /> {hero.secondaryCtaText || 'Book Free Demo'}
-                </Link>
+              {/* Feature 3: Online & Offline Classes */}
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-2 flex items-center justify-center">
+                  <MonitorPlay className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
+                </div>
+                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                  Online &<br />Offline Classes
+                </span>
               </div>
-            </div>
 
-            {/* Right Hero Student Visual */}
-            <div className="lg:col-span-5 relative flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-sm sm:max-w-md">
-                {/* Floating Achievement Card */}
-                <div className="absolute -top-4 -left-4 z-30 bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl border border-slate-100 text-[#0B1E3D] flex items-center gap-3 hidden sm:flex animate-float">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 font-black">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">JAIIB / CAIIB</p>
-                    <p className="text-xs font-extrabold text-[#0B1E3D]">89.4% 1st-Attempt Pass</p>
-                  </div>
+              {/* Feature 4: Personal Guidance */}
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-2 flex items-center justify-center">
+                  <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
                 </div>
-
-                {/* Main Hero Student Photo */}
-                <div className="relative rounded-t-3xl overflow-hidden shadow-2xl border-t border-x border-white/20">
-                  <img
-                    src={
-                      hero.heroImage?.startsWith('http')
-                        ? hero.heroImage
-                        : hero.heroImage?.startsWith('/uploads')
-                        ? `${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/api\/v1\/?$/, '')}${hero.heroImage}`
-                        : hero.heroImage || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop'
-                    }
-                    alt="Ranvi Aspirant Preparing for Banking & Government Exams"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop';
-                    }}
-                    className="w-full h-84 sm:h-104 object-cover object-top"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B1E3D] via-transparent to-transparent opacity-85"></div>
-                </div>
-
-                {/* Floating Badge */}
-                <div className="absolute bottom-3 left-3 right-3 z-20 bg-gradient-to-r from-[#12356B]/95 to-[#1769D2]/95 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-2xl flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#F4B942] animate-ping"></span>
-                      <p className="text-[11px] font-black text-[#F4B942] uppercase tracking-wider">
-                        Banking • Current Affairs • GA
-                      </p>
-                    </div>
-                    <p className="text-xs font-extrabold text-white">
-                      100% Exam-Aligned Study Modules
-                    </p>
-                  </div>
-                  <Link
-                    to="/mock-tests"
-                    className="bg-[#F4B942] hover:bg-amber-300 text-[#0B1E3D] px-3 py-1.5 rounded-lg text-xs font-black shadow-sm"
-                  >
-                    Try Free
-                  </Link>
-                </div>
+                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                  Personal<br />Guidance
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Gold Strip: Learn • Excel • Achieve */}
-        <div className="w-full bg-[#F4B942] py-2.5 px-4 shadow-md relative z-20">
+        <div className="w-full bg-[#F4B942] py-2 sm:py-2.5 px-4 shadow-md relative z-20">
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-center">
-            <span className="text-[#0B1E3D] font-black text-base sm:text-xl tracking-widest uppercase">
+            <span className="text-[#0B1E3D] font-black text-xs sm:text-sm md:text-base lg:text-lg tracking-widest uppercase">
               {bannerStrip.tagline || 'Learn • Excel • Achieve'}
             </span>
           </div>
@@ -442,183 +400,225 @@ export const HomePage = () => {
           2. BANKER'S PATH SECTION (DYNAMIC TILES & CONTENT)
       ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-b from-[#EAF3FF] to-[#F2F7FF] rounded-3xl p-5 sm:p-8 border border-blue-200 shadow-md">
+        <div className="bg-[#EBF4FE] rounded-3xl p-5 sm:p-7 md:p-8 border border-[#D0E2FB] shadow-sm">
           {/* Card Header */}
-          <div className="flex items-center justify-between mb-6 gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-blue-100 text-[#12356B] flex items-center justify-center shadow-xs border border-blue-200">
-                <Landmark className="w-7 h-7 text-[#1769D2]" />
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#D4E6FA] text-[#0B3B70] flex items-center justify-center shrink-0 shadow-xs">
+                <Landmark className="w-6 h-6 sm:w-7 sm:h-7 text-[#0B3B70]" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-3xl font-black text-[#0B1E3D] font-serif tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] font-serif tracking-tight leading-tight">
                   {bankersSection.title}
                 </h2>
-                <p className="text-xs sm:text-sm font-bold text-slate-600">
+                <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
                   {bankersSection.subtitle}
                 </p>
               </div>
             </div>
 
             <Link
-              to="/bankers-path"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-[#1769D2] hover:text-[#12356B] bg-white px-4 py-2 rounded-xl border border-blue-200 shadow-xs"
+              to={bankersSection.buttonLink || '/bankers-path'}
+              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
             >
-              View Full Programs <ChevronRight className="w-4 h-4" />
+              <span>{bankersSection.buttonText || 'View All'}</span>
+              <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-6 font-medium max-w-4xl">
-            {bankersSection.description}
-          </p>
-
           {/* 8 Color-Coded Tiles Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            {Array.isArray(bankersSection?.tiles) &&
-              bankersSection.tiles.map((tile, idx) => {
-                const bgGradients = [
-                  'from-[#0B63C5] to-[#084E9E]',
-                  'from-[#D32F2F] to-[#B71C1C]',
-                  'from-[#0F8A4B] to-[#0B6A39]',
-                  'from-[#E58A00] to-[#C77500]',
-                  'from-[#8E24AA] to-[#6A1B9A]',
-                  'from-[#1976D2] to-[#1565C0]',
-                  'from-[#E91E63] to-[#C2185B]',
-                  'from-[#00897B] to-[#00695C]',
-                ];
-                const gradientClass = tile.bg || bgGradients[idx % bgGradients.length];
-
-                return (
-                  <Link
-                    key={idx}
-                    to={tile.path || '/bankers-path'}
-                    className={`bg-gradient-to-br ${gradientClass} text-white p-4 sm:p-5 rounded-2xl shadow-md hover:shadow-xl hover:scale-103 transition-all duration-300 flex flex-col justify-between min-h-24 sm:min-h-28 border border-white/10 group`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <span className="text-base sm:text-xl font-black tracking-wide drop-shadow-xs">
-                        {tile.name}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-white/70 group-hover:translate-x-1 group-hover:text-white transition-all" />
-                    </div>
-                    {tile.subtitle && (
-                      <span className="text-[10px] sm:text-xs font-semibold text-white/90 mt-2 line-clamp-1">
-                        {tile.subtitle}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+            {bankersSection.tiles.map((tile, idx) => (
+              <Link
+                key={idx}
+                to={tile.path || '/bankers-path'}
+                className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
+              >
+                <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs leading-tight">
+                  {tile.name === 'NISM (SEBI)' ? (
+                    <span className="flex flex-col text-left">
+                      <span>NISM</span>
+                      <span className="text-[11px] sm:text-xs font-bold opacity-90">(SEBI)</span>
+                    </span>
+                  ) : (
+                    tile.name
+                  )}
+                </span>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
+                  <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ========================================================
-          3. COMPETITIVE EXAMS SECTION (DYNAMIC RECRUITMENT TILES)
+          3. ALL COMPETITIVE EXAMS COACHING SECTION
       ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-b from-[#FFF7ED] to-[#FFFBEB] rounded-3xl p-5 sm:p-8 border border-amber-200 shadow-md">
-          {/* Section Header */}
-          <div className="flex items-center justify-between mb-6 gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="w-13 h-13 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center shadow-xs border border-amber-200">
-                <GraduationCap className="w-7 h-7 text-amber-700" />
+        <div className="bg-[#FFF9EE] rounded-3xl p-5 sm:p-7 md:p-8 border border-[#FFE8BF] shadow-sm">
+          {/* Card Header */}
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#FFE5A3] text-[#0A2540] flex items-center justify-center shrink-0 shadow-xs">
+                <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7 text-[#0A2540]" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-3xl font-black text-[#0B1E3D] font-serif tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] font-serif tracking-tight leading-tight">
                   {competitiveSection.title}
                 </h2>
-                <p className="text-xs sm:text-sm font-bold text-amber-900">
+                <p className="text-xs sm:text-sm font-semibold text-slate-700 mt-0.5">
                   {competitiveSection.subtitle}
                 </p>
               </div>
             </div>
 
             <Link
-              to="/competitive-exams"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-amber-900 hover:text-amber-950 bg-white px-4 py-2 rounded-xl border border-amber-200 shadow-xs"
+              to={competitiveSection.buttonLink || '/competitive-exams'}
+              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
             >
-              Explore All Exams <ChevronRight className="w-4 h-4" />
+              <span>{competitiveSection.buttonText || 'View All'}</span>
+              <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-6 font-medium max-w-4xl">
-            {competitiveSection.description}
-          </p>
-
-          {/* 11 Colorful Tiles Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
-            {Array.isArray(competitiveSection?.tiles) &&
-              competitiveSection.tiles.map((tile, idx) => {
-                const compGradients = [
-                  'from-[#0284C7] to-[#0369A1]',
-                  'from-[#DC2626] to-[#B91C1C]',
-                  'from-[#059669] to-[#047857]',
-                  'from-[#EA580C] to-[#C2410C]',
-                  'from-[#7C3AED] to-[#6D28D9]',
-                  'from-[#1E40AF] to-[#1E3A8A]',
-                  'from-[#DB2777] to-[#BE185D]',
-                  'from-[#0D9488] to-[#0F766E]',
-                  'from-[#D97706] to-[#B45309]',
-                  'from-[#6B21A8] to-[#581C87]',
-                  'from-[#4D7C0F] to-[#3F6212]',
-                ];
-                const gradientClass = tile.bg || compGradients[idx % compGradients.length];
-
-                return (
-                  <Link
-                    key={idx}
-                    to={tile.path || '/competitive-exams'}
-                    className={`bg-gradient-to-br ${gradientClass} text-white p-3.5 sm:p-4 rounded-xl shadow-xs hover:shadow-md hover:scale-103 transition-all text-center flex items-center justify-center font-black text-xs sm:text-sm tracking-wider uppercase border border-white/10`}
-                  >
+          {/* 11 Colorful Tiles: Rows 1 & 2 (4 cols) and Row 3 (3 cols) */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {competitiveSection.tiles.slice(0, 8).map((tile, idx) => (
+                <Link
+                  key={idx}
+                  to={tile.path || '/competitive-exams'}
+                  className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
+                >
+                  <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
                     {tile.name}
-                  </Link>
-                );
-              })}
+                  </span>
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
+                    <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Row 3: 3 items spread across 3 equal columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              {competitiveSection.tiles.slice(8, 11).map((tile, idx) => (
+                <Link
+                  key={idx + 8}
+                  to={tile.path || '/competitive-exams'}
+                  className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
+                >
+                  <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
+                    {tile.name}
+                  </span>
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
+                    <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ========================================================
-          4. 4 QUICK ACTION LEARNING HUBS (DYNAMIC)
+          4. 4 QUICK ACTION HUBS (2x2 GRID MATCHING REFERENCE)
       ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.isArray(actionHubs) &&
-            actionHubs.map((hub, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group card-hover-effect"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1769D2] flex items-center justify-center font-black text-lg border border-blue-100 group-hover:scale-110 transition-transform">
-                    {idx === 0 ? <Video className="w-6 h-6" /> : idx === 1 ? <MonitorPlay className="w-6 h-6" /> : idx === 2 ? <FileCheck2 className="w-6 h-6" /> : <Users className="w-6 h-6" />}
-                  </div>
-                  {hub.badge && (
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#EAF3FF] text-[#12356B]">
-                      {hub.badge}
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-base font-extrabold text-[#0B1E3D] font-heading">
-                  {hub.title}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          {/* Card 1: Classes */}
+          <Link
+            to="/online-classes"
+            className="bg-gradient-to-r from-[#1976D2] to-[#0D47A1] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                <MonitorPlay className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  Classes
                 </h3>
-
-                <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                  {hub.description}
+                <p className="text-xs sm:text-sm font-medium text-white/90 mt-0.5">
+                  Live & Recorded Learning
                 </p>
               </div>
+            </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/25 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
+            </div>
+          </Link>
 
-              <div className="pt-5 mt-4 border-t border-slate-100">
-                <Link
-                  to={hub.link || '/courses'}
-                  className="inline-flex items-center gap-1.5 text-xs font-black text-[#1769D2] group-hover:text-[#12356B] transition-colors"
-                >
-                  {hub.buttonText || 'Explore Now'} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </Link>
+          {/* Card 2: Exams */}
+          <Link
+            to="/mock-tests"
+            className="bg-gradient-to-r from-[#00897B] to-[#00695C] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                <FileCheck2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  Exams
+                </h3>
+                <p className="text-xs sm:text-sm font-medium text-white/90 mt-0.5">
+                  Online Tests & Mock Tests
+                </p>
               </div>
             </div>
-          ))}
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/25 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
+            </div>
+          </Link>
+
+          {/* Card 3: Enquiry */}
+          <Link
+            to="/enquiry"
+            className="bg-[#FCE4EC] border border-[#F8BBD0] text-[#0B1E3D] p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#C2185B] flex items-center justify-center shrink-0 shadow-xs text-white">
+                <MessageSquareQuote className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-[#C2185B] leading-tight">
+                  Enquiry
+                </h3>
+                <p className="text-xs sm:text-sm font-medium text-[#880E4F]/85 mt-0.5">
+                  Have Questions? Get in Touch
+                </p>
+              </div>
+            </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#C2185B] flex items-center justify-center shrink-0 text-white shadow-xs group-hover:translate-x-1 transition-transform">
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
+            </div>
+          </Link>
+
+          {/* Card 4: Enroll Now */}
+          <Link
+            to="/bankers-path"
+            className="bg-[#FFE082] border border-[#FFD54F] text-[#0B1E3D] p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FFA000] flex items-center justify-center shrink-0 shadow-xs text-[#0B1E3D]">
+                <Users className="w-6 h-6 text-[#0B1E3D]" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-[#0B1E3D] leading-tight">
+                  Enroll Now
+                </h3>
+                <p className="text-xs sm:text-sm font-medium text-[#78350F]/85 mt-0.5">
+                  Start Your Learning Journey
+                </p>
+              </div>
+            </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFA000] flex items-center justify-center shrink-0 text-white shadow-xs group-hover:translate-x-1 transition-transform">
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
+            </div>
+          </Link>
         </div>
       </section>
 
