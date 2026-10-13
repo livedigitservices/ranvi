@@ -65,6 +65,19 @@ if (env.NODE_ENV !== 'test') {
 // Static files for media uploads (images, videos, handouts)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Root Endpoint (Welcome & Uptime Check)
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Ranvi Institutions Backend API is active and running',
+    status: 'online',
+    version: '1.0.0',
+    apiBase: '/api/v1',
+    healthCheck: '/api/v1/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // API Routes
 app.use('/api/v1', routes);
 
