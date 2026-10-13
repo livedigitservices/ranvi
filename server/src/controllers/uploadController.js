@@ -68,6 +68,12 @@ const upload = multer({
 
 exports.uploadMiddleware = upload;
 
+const getFullUrl = (req, relativePath) => {
+  const host = req.get('host');
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  return `${protocol}://${host}${relativePath}`;
+};
+
 // Image upload handler
 exports.handleImageUpload = (req, res, next) => {
   try {
@@ -75,8 +81,10 @@ exports.handleImageUpload = (req, res, next) => {
       return sendError(res, 'No image file provided', 400);
     }
     const relativePath = `/uploads/images/${req.file.filename}`;
+    const fullUrl = getFullUrl(req, relativePath);
     return sendSuccess(res, {
-      url: relativePath,
+      url: fullUrl,
+      relativePath,
       filename: req.file.filename,
       size: req.file.size,
       mimetype: req.file.mimetype,
@@ -93,8 +101,10 @@ exports.handleVideoUpload = (req, res, next) => {
       return sendError(res, 'No video file provided', 400);
     }
     const relativePath = `/uploads/videos/${req.file.filename}`;
+    const fullUrl = getFullUrl(req, relativePath);
     return sendSuccess(res, {
-      url: relativePath,
+      url: fullUrl,
+      relativePath,
       filename: req.file.filename,
       size: req.file.size,
       mimetype: req.file.mimetype,
@@ -112,8 +122,10 @@ exports.handleDocumentUpload = (req, res, next) => {
       return sendError(res, 'No document or paper file provided', 400);
     }
     const relativePath = `/uploads/papers/${req.file.filename}`;
+    const fullUrl = getFullUrl(req, relativePath);
     return sendSuccess(res, {
-      url: relativePath,
+      url: fullUrl,
+      relativePath,
       filename: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size,
