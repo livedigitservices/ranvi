@@ -40,7 +40,28 @@ export const AdminSettingsPage = () => {
       try {
         const res = await adminService.getSiteSettings();
         if (res.success && res.data) {
-          setSettings(res.data);
+          const data = { ...res.data };
+          data.heroBanner = {
+            badgeText: "India's Premier Coaching for Banking & Government Exams",
+            headline: 'Build Your Banking & Government Career with Us',
+            highlightWord: 'Banking & Government',
+            subheadline:
+              'expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
+            primaryCtaText: "Explore Banker's Path",
+            primaryCtaLink: '/bankers-path',
+            secondaryCtaText: 'Book Free Demo',
+            secondaryCtaLink: '/enquiry',
+            heroImage:
+              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
+            ...(data.heroBanner || {}),
+          };
+          if (!data.heroBanner.headline && data.heroBanner.headlinePrefix) {
+            data.heroBanner.headline = `${data.heroBanner.headlinePrefix} ${data.heroBanner.headlineHighlight || ''} ${data.heroBanner.headlineSuffix || ''}`.trim();
+          }
+          if (!data.heroBanner.heroImage && data.heroBanner.heroImageUrl) {
+            data.heroBanner.heroImage = data.heroBanner.heroImageUrl;
+          }
+          setSettings(data);
         }
       } catch (err) {
         console.error(err);

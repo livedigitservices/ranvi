@@ -97,17 +97,29 @@ export const HomePage = () => {
   }, []);
 
   // Fallbacks for dynamic settings
-  const hero = settings?.heroBanner || {
-    badgeText: "India's Premier Coaching for Banking & Government Exams",
-    headline: 'Build Your Banking & Government Career with Us',
-    highlightWord: 'Banking & Government',
+  const hero = {
+    badgeText:
+      settings?.heroBanner?.badgeText ||
+      "India's Premier Coaching for Banking & Government Exams",
+    headline:
+      settings?.heroBanner?.headline ||
+      (settings?.heroBanner?.headlinePrefix
+        ? `${settings.heroBanner.headlinePrefix} ${settings.heroBanner.headlineHighlight || ''} ${settings.heroBanner.headlineSuffix || ''}`.trim()
+        : 'Build Your Banking & Government Career with Us'),
+    highlightWord:
+      settings?.heroBanner?.highlightWord ||
+      settings?.heroBanner?.headlineHighlight ||
+      'Banking & Government',
     subheadline:
+      settings?.heroBanner?.subheadline ||
       'Expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
-    primaryCtaText: "Explore Banker's Path",
-    primaryCtaLink: '/bankers-path',
-    secondaryCtaText: 'Book Free Demo',
-    secondaryCtaLink: '/enquiry',
+    primaryCtaText: settings?.heroBanner?.primaryCtaText || "Explore Banker's Path",
+    primaryCtaLink: settings?.heroBanner?.primaryCtaLink || '/bankers-path',
+    secondaryCtaText: settings?.heroBanner?.secondaryCtaText || 'Book Free Demo',
+    secondaryCtaLink: settings?.heroBanner?.secondaryCtaLink || '/enquiry',
     heroImage:
+      settings?.heroBanner?.heroImage ||
+      settings?.heroBanner?.heroImageUrl ||
       'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
   };
 
@@ -302,7 +314,15 @@ export const HomePage = () => {
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight font-heading leading-tight text-white">
-                {hero.headline}
+                {hero.highlightWord && hero.headline && hero.headline.includes(hero.highlightWord) ? (
+                  <>
+                    {hero.headline.split(hero.highlightWord)[0]}
+                    <span className="text-[#F4B942]">{hero.highlightWord}</span>
+                    {hero.headline.split(hero.highlightWord).slice(1).join(hero.highlightWord)}
+                  </>
+                ) : (
+                  hero.headline
+                )}
               </h1>
 
               <p className="text-sm sm:text-base text-blue-100 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
@@ -367,8 +387,17 @@ export const HomePage = () => {
                 {/* Main Hero Student Photo */}
                 <div className="relative rounded-t-3xl overflow-hidden shadow-2xl border-t border-x border-white/20">
                   <img
-                    src={hero.heroImage}
+                    src={
+                      hero.heroImage?.startsWith('http')
+                        ? hero.heroImage
+                        : hero.heroImage?.startsWith('/uploads')
+                        ? `${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/api\/v1\/?$/, '')}${hero.heroImage}`
+                        : hero.heroImage || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop'
+                    }
                     alt="Ranvi Aspirant Preparing for Banking & Government Exams"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop';
+                    }}
                     className="w-full h-84 sm:h-104 object-cover object-top"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0B1E3D] via-transparent to-transparent opacity-85"></div>

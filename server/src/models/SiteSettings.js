@@ -25,6 +25,13 @@ const SiteSettingsSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true },
   },
   heroBanner: {
+    badgeText: { type: String, default: "India's Premier Coaching for Banking & Government Exams" },
+    headline: { type: String, default: 'Build Your Banking & Government Career with Us' },
+    highlightWord: { type: String, default: 'Banking & Government' },
+    heroImage: {
+      type: String,
+      default: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
+    },
     headlinePrefix: { type: String, default: 'Build Your' },
     headlineHighlight: { type: String, default: 'Banking & Government' },
     headlineSuffix: { type: String, default: 'Career with Us' },
@@ -195,6 +202,7 @@ const SiteSettingsSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
+  strict: false,
 });
 
 module.exports = mongoose.model('SiteSettings', SiteSettingsSchema);
