@@ -1,5 +1,6 @@
 import api from './api';
 export { authService } from './authService';
+export { entranceExamService } from './entranceExamService';
 
 export const courseService = {
   getCourses: async (params = {}) => {

@@ -47,7 +47,7 @@ export const OnlineClassesPage = () => {
         </div>
 
         {/* Live Batch Timetable Overview */}
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs space-y-6">
+        <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-extrabold uppercase text-[#1769D2] tracking-wider">Weekly Schedule</span>

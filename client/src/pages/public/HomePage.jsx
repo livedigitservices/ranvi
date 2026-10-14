@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { courseService, examService, facultyService } from '../../services';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 import { CourseCard } from '../../components/course/CourseCard';
+import { EntranceExamsSection } from '../../components/home/EntranceExamsSection';
 import {
   GraduationCap,
   Sparkles,
@@ -419,7 +420,7 @@ export const HomePage = () => {
 
             <Link
               to={bankersSection.buttonLink || '/bankers-path'}
-              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
+              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-3 sm:px-5 py-3 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
             >
               <span>{bankersSection.buttonText || 'View All'}</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
@@ -427,7 +428,7 @@ export const HomePage = () => {
           </div>
 
           {/* 8 Color-Coded Tiles Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4">
             {bankersSection.tiles.map((tile, idx) => (
               <Link
                 key={idx}
@@ -464,7 +465,7 @@ export const HomePage = () => {
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#FFE5A3] text-[#0A2540] flex items-center justify-center shrink-0 shadow-xs">
                 <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7 text-[#0A2540]" />
               </div>
-              <div>
+              <div  >
                 <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] font-serif tracking-tight leading-tight">
                   {competitiveSection.title}
                 </h2>
@@ -476,7 +477,7 @@ export const HomePage = () => {
 
             <Link
               to={competitiveSection.buttonLink || '/competitive-exams'}
-              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
+              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-3 sm:px-5 py-3 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
             >
               <span>{competitiveSection.buttonText || 'View All'}</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
@@ -485,14 +486,14 @@ export const HomePage = () => {
 
           {/* 11 Colorful Tiles: Rows 1 & 2 (4 cols) and Row 3 (3 cols) */}
           <div className="space-y-3 sm:space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4">
               {competitiveSection.tiles.slice(0, 8).map((tile, idx) => (
                 <Link
                   key={idx}
                   to={tile.path || '/competitive-exams'}
                   className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
                 >
-                  <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
+                  <span className="font-bold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
                     {tile.name}
                   </span>
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
@@ -503,7 +504,7 @@ export const HomePage = () => {
             </div>
 
             {/* Row 3: 3 items spread across 3 equal columns */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {competitiveSection.tiles.slice(8, 11).map((tile, idx) => (
                 <Link
                   key={idx + 8}
@@ -524,18 +525,23 @@ export const HomePage = () => {
       </section>
 
       {/* ========================================================
-          4. 4 QUICK ACTION HUBS (2x2 GRID MATCHING REFERENCE)
+          4. ALL ENTRANCE EXAMS COACHING SECTION (MATCHING REFERENCE UI)
+      ======================================================== */}
+      <EntranceExamsSection />
+
+      {/* ========================================================
+          5. 4 QUICK ACTION HUBS (2x2 GRID MATCHING REFERENCE)
       ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-4">
           {/* Card 1: Classes */}
           <Link
             to="/online-classes"
-            className="bg-gradient-to-r from-[#1976D2] to-[#0D47A1] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+            className="bg-gradient-to-r from-[#1976D2] to-[#0D47A1] text-white p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
           >
             <div className="flex items-center gap-3.5 sm:gap-4">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                <MonitorPlay className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                <MonitorPlay className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
@@ -554,11 +560,11 @@ export const HomePage = () => {
           {/* Card 2: Exams */}
           <Link
             to="/mock-tests"
-            className="bg-gradient-to-r from-[#00897B] to-[#00695C] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+            className="bg-gradient-to-r from-[#00897B] to-[#00695C] text-white p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3.5 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                <FileCheck2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                <FileCheck2 className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
@@ -577,18 +583,18 @@ export const HomePage = () => {
           {/* Card 3: Enquiry */}
           <Link
             to="/enquiry"
-            className="bg-[#FCE4EC] border border-[#F8BBD0] text-[#0B1E3D] p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+            className="bg-[#FCE4EC] border border-[#F8BBD0] text-[#0B1E3D] p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3.5 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#C2185B] flex items-center justify-center shrink-0 shadow-xs text-white">
-                <MessageSquareQuote className="w-6 h-6 text-white" />
+                <MessageSquareQuote className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-[#C2185B] leading-tight">
-                  Enquiry
+                  Material
                 </h3>
                 <p className="text-xs sm:text-sm font-medium text-[#880E4F]/85 mt-0.5">
-                  Have Questions? Get in Touch
+                  Get the Material
                 </p>
               </div>
             </div>
@@ -600,11 +606,11 @@ export const HomePage = () => {
           {/* Card 4: Enroll Now */}
           <Link
             to="/bankers-path"
-            className="bg-[#FFE082] border border-[#FFD54F] text-[#0B1E3D] p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
+            className="bg-[#FFE082] border border-[#FFD54F] text-[#0B1E3D] p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3.5 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FFA000] flex items-center justify-center shrink-0 shadow-xs text-[#0B1E3D]">
-                <Users className="w-6 h-6 text-[#0B1E3D]" />
+                <Users className="w-5 h-5 text-[#0B1E3D]" />
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-[#0B1E3D] leading-tight">

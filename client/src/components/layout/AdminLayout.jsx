@@ -12,6 +12,7 @@ import {
   MessageSquareQuote,
   Settings,
   ShieldAlert,
+  GraduationCap,
   LogOut,
   Menu,
   X,
@@ -31,6 +32,7 @@ export const AdminLayout = () => {
   const navItems = [
     { name: 'Overview', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Course Management', path: '/admin/courses', icon: BookOpen },
+    { name: 'Entrance Exam Programs', path: '/admin/entrance-exams', icon: GraduationCap },
     { name: 'Faculty Mentors', path: '/admin/faculty', icon: Users },
     { name: 'Recorded Lessons', path: '/admin/lessons', icon: Video },
     { name: 'Live Classes (Zoom)', path: '/admin/live-classes', icon: Video },
@@ -46,15 +48,20 @@ export const AdminLayout = () => {
     <div className="h-screen w-full flex flex-col bg-[#F8FAFC] overflow-hidden">
       {/* Header */}
       <header className="h-20 shrink-0 bg-[#0B1E3D] text-white border-b border-blue-900 z-30 shadow-md">
-        <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between relative">
+          {/* Mobile Menu Icon (Left on mobile) */}
+          <div className="flex lg:hidden items-center z-10">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg text-white/80 hover:bg-white/10"
+              className="p-2 -ml-2 rounded-xl text-white/80 hover:bg-white/10 transition-colors"
+              aria-label="Toggle Navigation"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+          </div>
 
+          {/* Logo (Centered on mobile, Left on desktop) */}
+          <div className="lg:static absolute left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto flex items-center z-10">
             <Link to="/" className="flex items-center">
               <RanviLogo size="small" variant="light" />
               <span className="hidden sm:inline-block ml-3 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#1769D2] text-white uppercase tracking-wider">
@@ -63,7 +70,8 @@ export const AdminLayout = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-3 z-10">
             <Link
               to="/"
               className="text-xs font-bold text-white/90 hover:text-white px-3.5 py-2 rounded-xl bg-white/10 hidden md:inline-flex items-center gap-1.5 hover:bg-white/20 transition-colors"

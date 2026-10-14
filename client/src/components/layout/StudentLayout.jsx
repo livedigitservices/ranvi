@@ -43,22 +43,27 @@ export const StudentLayout = () => {
 
       {/* Top Header */}
       <header className="h-20 shrink-0 bg-white border-b border-slate-200 z-30 shadow-xs">
-        <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between relative">
+          {/* Mobile Menu Icon (Left on mobile) */}
+          <div className="flex lg:hidden items-center z-10">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              className="p-2 -ml-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
               aria-label="Toggle Navigation"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+          </div>
 
+          {/* Logo (Centered on mobile, Left on desktop) */}
+          <div className="lg:static absolute left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto flex items-center z-10">
             <Link to="/" className="flex items-center">
               <RanviLogo size="small" />
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-3 z-10">
             <div className="hidden sm:flex items-center gap-2 bg-[#EAF3FF] text-[#12356B] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#1769D2]/20">
               <ShieldCheck className="w-4 h-4 text-[#1769D2]" />
               <span>Single-Device Active</span>
@@ -72,7 +77,7 @@ export const StudentLayout = () => {
             </Link>
 
             <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
-              <div className="w-9 h-9 rounded-full bg-[#0B1E3D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1976D2] to-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-blue-100">
                 {user?.name?.charAt(0) || 'S'}
               </div>
               <div className="hidden sm:block text-left">

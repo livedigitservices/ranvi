@@ -19,6 +19,7 @@ import { OnlineClassesPage } from './pages/public/OnlineClassesPage';
 import { RecordedClassesPage } from './pages/public/RecordedClassesPage';
 import { MockTestsPage } from './pages/public/MockTestsPage';
 import { FacultyPage } from './pages/public/FacultyPage';
+import { EntranceExamsPage } from './pages/public/EntranceExamsPage';
 import { AboutPage } from './pages/public/AboutPage';
 import { ContactPage } from './pages/public/ContactPage';
 import { EnquiryDemoPage } from './pages/public/EnquiryDemoPage';
@@ -51,6 +52,7 @@ import { FacultyDashboardPage } from './pages/faculty/FacultyDashboardPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCourseFormPage } from './pages/admin/AdminCourseFormPage';
+import { AdminEntranceExamsPage } from './pages/admin/AdminEntranceExamsPage';
 import { AdminFacultyPage } from './pages/admin/AdminFacultyPage';
 import { AdminLessonsPage } from './pages/admin/AdminLessonsPage';
 import { AdminLiveClassesPage } from './pages/admin/AdminLiveClassesPage';
@@ -109,6 +111,7 @@ export function App() {
                 <Route path="/online-classes" element={<OnlineClassesPage />} />
                 <Route path="/recorded-classes" element={<RecordedClassesPage />} />
                 <Route path="/mock-tests" element={<MockTestsPage />} />
+                <Route path="/entrance-exams" element={<EntranceExamsPage />} />
                 <Route path="/faculty" element={<FacultyPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
@@ -171,6 +174,7 @@ export function App() {
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="courses/new" element={<AdminCourseFormPage />} />
                 <Route path="courses/:courseId/edit" element={<AdminCourseFormPage />} />
+                <Route path="entrance-exams" element={<AdminEntranceExamsPage />} />
                 <Route path="faculty" element={<AdminFacultyPage />} />
                 <Route path="lessons" element={<AdminLessonsPage />} />
                 <Route path="live-classes" element={<AdminLiveClassesPage />} />

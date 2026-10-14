@@ -76,6 +76,7 @@ export const Footer = () => {
               <li><Link to="/competitive-exams?cat=GOVERNMENT" className="hover:text-[#F4B942] transition-colors">SSC CGL / CHSL / MTS</Link></li>
               <li><Link to="/competitive-exams?cat=RAILWAYS" className="hover:text-[#F4B942] transition-colors">Railways (RRB NTPC)</Link></li>
               <li><Link to="/competitive-exams?cat=POLICE_DEFENCE" className="hover:text-[#F4B942] transition-colors">Police & Defence Exams</Link></li>
+              <li><Link to="/entrance-exams" className="hover:text-[#F4B942] transition-colors font-semibold text-amber-300">Entrance Exams (JEE/NEET/CET)</Link></li>
               <li><Link to="/mock-tests" className="hover:text-[#F4B942] transition-colors">10–20 Model Papers</Link></li>
             </ul>
           </div>

@@ -51,17 +51,6 @@ export const LoginPage = () => {
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#F8FAFC] to-[#EAF3FF]/40">
       <div className="max-w-md w-full space-y-6">
-        {/* Crest Brand Header */}
-        <div className="flex flex-col items-center justify-center text-center space-y-3">
-          <RanviLogo size="default" showTagline={true} />
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading mt-2">
-            Student & Faculty Portal
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-sm">
-            Enter your registered credentials to access your courses, live Zoom batches, and mock exams.
-          </p>
-        </div>
-
         {/* Luxury Login Card */}
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-5 relative">
           {errorMsg && (

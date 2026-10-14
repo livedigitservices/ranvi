@@ -56,7 +56,7 @@ export const EnquiryDemoPage = () => {
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-lg">
+        <div className="bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-slate-200 shadow-lg">
           {submitted ? (
             <div className="text-center py-8 space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">

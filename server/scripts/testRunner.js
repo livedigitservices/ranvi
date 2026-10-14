@@ -12,6 +12,7 @@ const Order = require('../src/models/Order');
 const Payment = require('../src/models/Payment');
 const Entitlement = require('../src/models/Entitlement');
 const Enquiry = require('../src/models/Enquiry');
+const EntranceExam = require('../src/models/EntranceExam');
 const { isValidZoomUrl } = require('../src/utils/zoomValidator');
 const { verifySignature } = require('../src/config/razorpay');
 const seedAll = require('./seed');
@@ -177,6 +178,58 @@ const runTests = async () => {
       status: 'NEW',
     });
     assert(enquiry._id !== null && enquiry.status === 'NEW', 'Enquiry successfully persisted with status NEW');
+
+    // 9. Test Entrance Exam Programs & CRUD
+    const entranceExams = await EntranceExam.find().sort({ displayOrder: 1 });
+    assert(entranceExams.length >= 9, 'All 9 default Entrance Exam programs exist in database');
+
+    const jee = await EntranceExam.findOne({ title: 'JEE Main' });
+    assert(jee !== null && jee.description.includes('NITs, IIITs'), 'JEE Main program exists with correct description');
+
+    const neet = await EntranceExam.findOne({ title: 'NEET-UG' });
+    assert(neet !== null && neet.description.includes('MBBS, BDS'), 'NEET-UG program exists with correct description');
+
+    const cuet = await EntranceExam.findOne({ title: 'CUET-UG' });
+    assert(cuet !== null && cuet.description.includes('Central Universities'), 'CUET-UG program exists with correct description');
+
+    const apEapcet = await EntranceExam.findOne({ title: 'AP EAPCET' });
+    assert(apEapcet !== null && apEapcet.description.includes('Andhra Pradesh'), 'AP EAPCET program exists with correct description');
+
+    const tgEapcet = await EntranceExam.findOne({ title: 'TG EAPCET' });
+    assert(tgEapcet !== null && tgEapcet.description.includes('Telangana'), 'TG EAPCET program exists with correct description');
+
+    const apPolycet = await EntranceExam.findOne({ title: 'AP POLYCET' });
+    assert(apPolycet !== null && apPolycet.description.includes('Polytechnic Diploma courses in Andhra Pradesh'), 'AP POLYCET program exists with correct description');
+
+    const tgPolycet = await EntranceExam.findOne({ title: 'TG POLYCET' });
+    assert(tgPolycet !== null && tgPolycet.description.includes('Polytechnic Diploma courses in Telangana'), 'TG POLYCET program exists with correct description');
+
+    const aprjc = await EntranceExam.findOne({ title: 'APRJC CET' });
+    assert(aprjc !== null && aprjc.description.includes('Residential Junior Colleges'), 'APRJC CET program exists with correct description');
+
+    const tgcet = await EntranceExam.findOne({ title: 'TGCET' });
+    assert(tgcet !== null && tgcet.description.includes('Telangana Gurukul Residential Schools'), 'TGCET program exists with correct description');
+
+    // Test Entrance Exam CRUD: Create, Update, Delete
+    const customExam = await EntranceExam.create({
+      title: 'BITSAT Special',
+      description: 'Admission to BITS Pilani campuses',
+      category: 'Engineering & Technology',
+      badge: 'National Level',
+      displayOrder: 99,
+    });
+    assert(customExam !== null && customExam.slug === 'bitsat-special', 'Admin can create new entrance exam with auto-slug');
+
+    const updatedExam = await EntranceExam.findByIdAndUpdate(
+      customExam._id,
+      { $set: { badge: 'National Level - Premier' } },
+      { new: true }
+    );
+    assert(updatedExam.badge === 'National Level - Premier', 'Admin can update entrance exam details');
+
+    await EntranceExam.findByIdAndDelete(customExam._id);
+    const deletedCheck = await EntranceExam.findById(customExam._id);
+    assert(deletedCheck === null, 'Admin can delete entrance exam program');
 
     console.log('\n🧪 =======================================================');
     console.log(`🧪 TEST RESULTS: ${passedCount} PASSED, ${failedCount} FAILED`);

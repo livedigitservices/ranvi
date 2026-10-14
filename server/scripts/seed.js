@@ -8,6 +8,14 @@ const MockTest = require('../src/models/MockTest');
 const Question = require('../src/models/Question');
 const Faculty = require('../src/models/Faculty');
 const SiteSettings = require('../src/models/SiteSettings');
+const EntranceExam = require('../src/models/EntranceExam');
+const DeviceSession = require('../src/models/DeviceSession');
+const Order = require('../src/models/Order');
+const Payment = require('../src/models/Payment');
+const Entitlement = require('../src/models/Entitlement');
+const Enquiry = require('../src/models/Enquiry');
+const ExamAttempt = require('../src/models/ExamAttempt');
+const { DEFAULT_ENTRANCE_EXAMS } = require('../src/controllers/entranceExamController');
 const { connectDB } = require('../src/config/db');
 
 const seedAll = async () => {
@@ -25,6 +33,13 @@ const seedAll = async () => {
     await Question.deleteMany({});
     await Faculty.deleteMany({});
     await SiteSettings.deleteMany({});
+    await EntranceExam.deleteMany({});
+    await DeviceSession.deleteMany({});
+    await Order.deleteMany({});
+    await Payment.deleteMany({});
+    await Entitlement.deleteMany({});
+    await Enquiry.deleteMany({});
+    await ExamAttempt.deleteMany({});
 
     console.log('[Seeder] 1. Creating Users...');
     const superAdminPassword = await User.hashPassword('RanviAdmin@2026!');
@@ -780,6 +795,9 @@ const seedAll = async () => {
         secondaryBtnLink: '/enquiry',
       },
     });
+
+    console.log('[Seeder] 9. Creating 9 Entrance Exam Programs...');
+    await EntranceExam.insertMany(DEFAULT_ENTRANCE_EXAMS);
 
     console.log('---------------------------------------------------------');
     console.log('✅ DATABASE SEEDING COMPLETE FOR RANVI INSTITUTIONS!');
