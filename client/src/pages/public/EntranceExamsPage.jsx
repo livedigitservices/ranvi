@@ -290,45 +290,6 @@ export const EntranceExamsPage = () => {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* Intro Highlight & Value Prop */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1769D2] flex items-center justify-center">
-              <GraduationCap className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-[#12356B] font-heading">
-              National & State Coverage
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Targeted coaching designed for JEE Main, NEET-UG, CUET-UG, EAPCET (AP & TG), POLYCET, and top residential Gurukul examinations.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Laptop className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-[#12356B] font-heading">
-              Dual Coaching Formats
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Choose between interactive daily live streaming classes via Zoom or offline classroom batches with daily mock tests and doubt clinics.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-[#12356B] font-heading">
-              CBT Mock Test Mastery
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Practice on actual exam software with negative marking calculations, section timers, question palettes, and in-depth performance analytics.
-            </p>
-          </div>
-        </div>
-
         {/* Search & Filter Tabs */}
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
