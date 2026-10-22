@@ -93,7 +93,7 @@ export const Footer = () => {
         {/* ========================================================
             2. QUICK LINKS & STUDENT SERVICES (2 COLUMNS)
         ======================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-6">
           {/* Column 1: Quick Links */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white font-extrabold text-sm uppercase tracking-wider">
@@ -291,7 +291,7 @@ export const Footer = () => {
         {/* ========================================================
             4. 4 TRUST BADGES IN 2x2 GRID
         ======================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 pt-2">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#08182D]/70 border border-white/10">
             <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-5 h-5 text-[#F4B942]" />

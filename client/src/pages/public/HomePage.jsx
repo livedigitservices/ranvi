@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { courseService } from '../../services';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 import {
-  Sparkles,
   BookOpen,
   Users,
   Shield,
@@ -20,6 +19,128 @@ import {
   ClipboardList,
   Mail,
 } from 'lucide-react';
+
+// ========================================================
+// 1. REUSABLE PROGRAM CARD COMPONENT (4x2 EXPANDABLE TILES)
+// ========================================================
+const ProgramCard = ({
+  title,
+  subtitle,
+  courses,
+  defaultTiles,
+  isExpanded,
+  onToggleExpand,
+  pageLink,
+  pageLinkLabel,
+  fallbackColor,
+  loading,
+  getTileShortName,
+}) => {
+  const displayCourses =
+    courses.length > 0
+      ? isExpanded
+        ? courses
+        : courses.slice(0, 8)
+      : loading
+      ? []
+      : defaultTiles;
+
+  return (
+    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+      {/* Card Header with in-place toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
+            {title}
+          </h3>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+            {subtitle}
+          </p>
+        </div>
+        {courses.length > 8 ? (
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
+          >
+            {isExpanded ? (
+              <>
+                Show Less <ChevronUp className="w-3.5 h-3.5" />
+              </>
+            ) : (
+              <>
+                View All ({courses.length}) <ChevronDown className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
+        ) : (
+          <Link
+            to={pageLink}
+            className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+          >
+            View All
+          </Link>
+        )}
+      </div>
+
+      {/* 4 columns x 2 rows Responsive Grid */}
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+        {displayCourses.map((course, idx) => {
+          const shortName = course.slug ? getTileShortName(course) : course.name;
+          const courseSubtitle =
+            course.tileSubtitle || course.subtitle || course.shortDescription;
+          const color = course.tileColor || course.color || fallbackColor;
+          const slug = course.slug || defaultTiles[idx % 8]?.slug;
+
+          return (
+            <Link
+              key={course._id || idx}
+              to={`/courses/${slug}`}
+              className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
+              style={{ backgroundColor: color }}
+              title={course.title || course.name}
+            >
+              <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
+                {shortName}
+              </div>
+              <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
+                {courseSubtitle}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Bottom expansion toggle & dedicated full page link */}
+      {courses.length > 8 && (
+        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+          >
+            {isExpanded ? (
+              <>
+                Show Less <ChevronUp className="w-3.5 h-3.5" />
+              </>
+            ) : (
+              <>
+                View All {courses.length} Courses <ChevronDown className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
+          <Link
+            to={pageLink}
+            className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
+          >
+            <span>{pageLinkLabel}</span>
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const HomePage = () => {
   const { settings } = useSiteSettings();
@@ -113,44 +234,23 @@ export const HomePage = () => {
   const defaultSlides = [
     {
       image: '/assets/hero-banner.png',
-      badgeText: "India's Premier Coaching for Banking & Government Exams",
       headlinePrefix: 'Build Your',
       headlineHighlight: 'Banking & Government',
       headlineSuffix: 'Career with Us',
-      subheadline:
-        'Expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
-      primaryCtaText: "Explore Banker's Path",
-      primaryCtaLink: '/bankers-path',
-      secondaryCtaText: 'Book Free Demo',
-      secondaryCtaLink: '/enquiry',
       tagline: 'Learn • Excel • Achieve',
     },
     {
       image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop',
-      badgeText: 'Proven Results in IBPS, SBI, SSC & Railways Recruitment',
       headlinePrefix: 'Crack Top',
       headlineHighlight: 'Competitive Exams',
       headlineSuffix: 'in 1st Attempt',
-      subheadline:
-        'Master speed mathematics, high-difficulty analytical reasoning, and current affairs with personalized faculty mentorship and 20+ full-length model papers.',
-      primaryCtaText: 'View Competitive Exams',
-      primaryCtaLink: '/competitive-exams',
-      secondaryCtaText: 'Take Free Mock Test',
-      secondaryCtaLink: '/mock-tests',
       tagline: 'Practice • Master • Succeed',
     },
     {
       image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=1400&auto=format&fit=crop',
-      badgeText: 'National & State Level Admissions Coaching',
       headlinePrefix: 'Excel in Top',
       headlineHighlight: 'Entrance Exams',
       headlineSuffix: 'with Ranvi',
-      subheadline:
-        'Targeted coaching for JEE Main, NEET-UG, CUET, AP EAPCET, TG EAPCET, and POLYCET by master educators with NCERT line-by-line problem solving.',
-      primaryCtaText: 'Explore Entrance Exams',
-      primaryCtaLink: '/entrance-exams',
-      secondaryCtaText: 'Get Free Guidance',
-      secondaryCtaLink: '/enquiry',
       tagline: 'Aspire • Learn • Excel',
     },
   ];
@@ -247,6 +347,97 @@ export const HomePage = () => {
 
   const activeSlide = slides[currentSlide] || slides[0];
 
+  // 4 Action Hub Cards Config
+  const actionCards = [
+    {
+      title: 'Enquiry & Demo',
+      subtitle: 'Join our free demo classes',
+      path: '/enquiry',
+      bgColor: '#0080FF',
+      icon: Mail,
+    },
+    {
+      title: 'Materials',
+      subtitle: 'Get study notes',
+      path: '/recorded-classes',
+      bgColor: '#FF8C00',
+      icon: FileText,
+    },
+    {
+      title: 'Classes',
+      subtitle: 'Live & Recorded',
+      path: '/online-classes',
+      bgColor: '#00C853',
+      icon: MonitorPlay,
+    },
+    {
+      title: 'Exams',
+      subtitle: 'Mock tests & Online tests',
+      path: '/mock-tests',
+      bgColor: '#9B51E0',
+      icon: ClipboardList,
+    },
+  ];
+
+  // 4 Learn with a Clear Plan Feature Cards Config
+  const planFeatures = [
+    {
+      title: 'Daily Planner',
+      desc: 'Structured daily schedule to cover complete syllabus on time.',
+      icon: FileText,
+      iconColor: '#0070F3',
+      iconBg: 'bg-blue-100',
+      cardBg: 'bg-[#EBF5FB]',
+      border: 'border-[#D4EBF8]',
+    },
+    {
+      title: 'Classes',
+      desc: 'Interactive live & high quality recorded video lectures.',
+      icon: MonitorPlay,
+      iconColor: '#00A86B',
+      iconBg: 'bg-emerald-100',
+      cardBg: 'bg-[#EAF9F1]',
+      border: 'border-[#D1F2DF]',
+    },
+    {
+      title: 'Practice Exams',
+      desc: 'Chapter-wise quizzes and full-length online mock tests.',
+      icon: ClipboardList,
+      iconColor: '#8A2BE2',
+      iconBg: 'bg-purple-100',
+      cardBg: 'bg-[#F6EEFD]',
+      border: 'border-[#E9D5FA]',
+    },
+    {
+      title: 'Expert Guidance',
+      desc: 'Doubt sessions and personal mentoring by retired bankers & rankers.',
+      icon: Users,
+      iconColor: '#D97706',
+      iconBg: 'bg-amber-100',
+      cardBg: 'bg-[#FFF8EC]',
+      border: 'border-[#FEE7C3]',
+    },
+  ];
+
+  // 3 Roadmap Steps Config
+  const roadmapSteps = [
+    {
+      step: '01',
+      title: 'Enroll in your course',
+      desc: 'Get instant access to study material & video lectures.',
+    },
+    {
+      step: '02',
+      title: 'Learn & Practice',
+      desc: 'Join daily live classes & take chapter-wise mock tests.',
+    },
+    {
+      step: '03',
+      title: 'Crack Exam & Reach Goal',
+      desc: 'Achieve top ranks with continuous guidance & analysis.',
+    },
+  ];
+
   return (
     <div className="space-y-6 sm:space-y-8 pb-16 bg-[#F8FAFC] overflow-x-hidden">
       {/* ========================================================
@@ -276,21 +467,12 @@ export const HomePage = () => {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 pt-8 sm:pt-12 pb-10 sm:pb-14">
-          <div className="max-w-xl text-left space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[#F4B942] text-[10px] sm:text-xs font-black tracking-wider uppercase">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{activeSlide.badgeText || "India's Premier Coaching Institute"}</span>
-            </div>
-
+          <div className="max-w-[30vh] sm:max-w-xl text-left space-y-5">
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight leading-[1.15] text-white drop-shadow-md">
               {activeSlide.headlinePrefix}{' '}
               <span className="text-[#F4B942]">{activeSlide.headlineHighlight}</span>
               {activeSlide.headlineSuffix ? ` ${activeSlide.headlineSuffix}` : ''}
             </h1>
-
-            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed max-w-lg">
-              {activeSlide.subheadline}
-            </p>
 
             <div className="grid grid-cols-4 gap-2 pt-1 text-center">
               <div>
@@ -326,21 +508,6 @@ export const HomePage = () => {
                   Personal<br />Guidance
                 </span>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                to={activeSlide.primaryCtaLink || '/bankers-path'}
-                className="inline-flex items-center gap-2 bg-[#1769D2] hover:bg-[#1257b0] text-white px-5 py-2.5 rounded-xl font-black text-xs transition-all shadow-md active:scale-95"
-              >
-                {activeSlide.primaryCtaText || "Explore Banker's Path"} <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <Link
-                to={activeSlide.secondaryCtaLink || '/enquiry'}
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/25 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
-              >
-                {activeSlide.secondaryCtaText || 'Book Free Demo'}
-              </Link>
             </div>
           </div>
         </div>
@@ -425,27 +592,6 @@ export const HomePage = () => {
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 tracking-wider uppercase block pt-0.5">
-              CHOOSE A STATE TO SEE TAILORED EXAMS, NOTIFICATIONS, SYLLABUS, AND TEST SERIES.
-            </span>
-          </div>
-
-          {/* Quick State Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5">
-            {['All India', 'Andhra Pradesh', 'Telangana', 'Karnataka', 'Tamil Nadu', 'Maharashtra', 'Delhi'].map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setSelectedState(st)}
-                className={`text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap transition-all shrink-0 ${
-                  selectedState === st
-                    ? 'bg-[#1769D2] text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
           </div>
 
           {selectedState !== 'All India' && (
@@ -469,7 +615,6 @@ export const HomePage = () => {
           2. OUR COACHING PROGRAMS (3 DISTINCT CARDS WITH 4x2 TILES)
       ======================================================== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 space-y-4 relative">
-        {/* Section Heading */}
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight">
             Our Coaching Programs
@@ -479,300 +624,56 @@ export const HomePage = () => {
           </p>
         </div>
 
-        {/* Floating Learning Platform Side Pill */}
-        <Link
-          to="/student"
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-[#0B2545] hover:bg-[#12356B] text-white px-2 sm:px-3 py-2 rounded-l-xl shadow-2xl flex items-center gap-1.5 transition-all duration-200 border-y border-l border-white/20 group hover:pr-3.5"
-          title="Open Student Learning Platform"
-        >
-          <GraduationCap className="w-4 h-4 text-[#F4B942] shrink-0" />
-          <span className="text-[10px] sm:text-xs font-black tracking-wide text-white">
-            <span className="inline sm:hidden">Portal</span>
-            <span className="hidden sm:inline">Learning Platform</span>
-          </span>
-        </Link>
+        {/* Card 1: Banker's Path */}
+        <ProgramCard
+          title="Banker's Path"
+          subtitle="Banking • Insurance • Finance"
+          courses={bankersCourses}
+          defaultTiles={defaultBankersTiles}
+          isExpanded={expandedSection.bankers}
+          onToggleExpand={() =>
+            setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
+          }
+          pageLink="/bankers-path"
+          pageLinkLabel="Banker's Path Page"
+          fallbackColor="#008080"
+          loading={coursesLoading}
+          getTileShortName={getTileShortName}
+        />
 
-        {/* ---------------- CARD 1: BANKER'S PATH ---------------- */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
-                Banker's Path
-              </h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                Banking • Insurance • Finance
-              </p>
-            </div>
-            {bankersCourses.length > 8 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
-                }
-                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
-              >
-                {expandedSection.bankers ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All ({bankersCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-            ) : (
-              <Link
-                to="/bankers-path"
-                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-              >
-                View All
-              </Link>
-            )}
-          </div>
+        {/* Card 2: Competitive Exams */}
+        <ProgramCard
+          title="Competitive Exams"
+          subtitle="Government Jobs • Banking • Railways • Defence & More"
+          courses={competitiveCourses}
+          defaultTiles={defaultCompetitiveTiles}
+          isExpanded={expandedSection.competitive}
+          onToggleExpand={() =>
+            setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
+          }
+          pageLink="/competitive-exams"
+          pageLinkLabel="Competitive Exams Page"
+          fallbackColor="#7A1D5A"
+          loading={coursesLoading}
+          getTileShortName={getTileShortName}
+        />
 
-          {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            {(bankersCourses.length > 0
-              ? expandedSection.bankers
-                ? bankersCourses
-                : bankersCourses.slice(0, 8)
-              : coursesLoading
-              ? []
-              : defaultBankersTiles
-            ).map((course, idx) => {
-              const shortName = course.slug ? getTileShortName(course) : course.name;
-              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
-              const color = course.tileColor || course.color || '#008080';
-              const slug = course.slug || defaultBankersTiles[idx % 8]?.slug;
-
-              return (
-                <Link
-                  key={course._id || idx}
-                  to={`/courses/${slug}`}
-                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
-                  style={{ backgroundColor: color }}
-                  title={course.title || course.name}
-                >
-                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
-                    {shortName}
-                  </div>
-                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
-                    {subtitle}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {bankersCourses.length > 8 && (
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
-                }
-                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
-              >
-                {expandedSection.bankers ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All {bankersCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-              <Link
-                to="/bankers-path"
-                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
-              >
-                Banker's Path Page <ChevronRight className="w-3 h-3" />
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* ---------------- CARD 2: COMPETITIVE EXAMS ---------------- */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
-                Competitive Exams
-              </h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                Government Jobs • Banking • Railways • Defence & More
-              </p>
-            </div>
-            {competitiveCourses.length > 8 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
-                }
-                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
-              >
-                {expandedSection.competitive ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All ({competitiveCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-            ) : (
-              <Link
-                to="/competitive-exams"
-                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-              >
-                View All
-              </Link>
-            )}
-          </div>
-
-          {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            {(competitiveCourses.length > 0
-              ? expandedSection.competitive
-                ? competitiveCourses
-                : competitiveCourses.slice(0, 8)
-              : coursesLoading
-              ? []
-              : defaultCompetitiveTiles
-            ).map((course, idx) => {
-              const shortName = course.slug ? getTileShortName(course) : course.name;
-              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
-              const color = course.tileColor || course.color || '#7A1D5A';
-              const slug = course.slug || defaultCompetitiveTiles[idx % 8]?.slug;
-
-              return (
-                <Link
-                  key={course._id || idx}
-                  to={`/courses/${slug}`}
-                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
-                  style={{ backgroundColor: color }}
-                  title={course.title || course.name}
-                >
-                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
-                    {shortName}
-                  </div>
-                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
-                    {subtitle}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {competitiveCourses.length > 8 && (
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
-                }
-                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
-              >
-                {expandedSection.competitive ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All {competitiveCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-              <Link
-                to="/competitive-exams"
-                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
-              >
-                Competitive Exams Page <ChevronRight className="w-3 h-3" />
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* ---------------- CARD 3: ENTRANCE EXAMS ---------------- */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
-                Entrance Exams
-              </h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                Engineering • Medical • Central Universities & State CETs
-              </p>
-            </div>
-            {entranceCourses.length > 8 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
-                }
-                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
-              >
-                {expandedSection.entrance ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All ({entranceCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-            ) : (
-              <Link
-                to="/entrance-exams"
-                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-              >
-                View All
-              </Link>
-            )}
-          </div>
-
-          {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            {(entranceCourses.length > 0
-              ? expandedSection.entrance
-                ? entranceCourses
-                : entranceCourses.slice(0, 8)
-              : coursesLoading
-              ? []
-              : defaultEntranceTiles
-            ).map((course, idx) => {
-              const shortName = course.slug ? getTileShortName(course) : course.name;
-              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
-              const color = course.tileColor || course.color || '#48631E';
-              const slug = course.slug || defaultEntranceTiles[idx % 8]?.slug;
-
-              return (
-                <Link
-                  key={course._id || idx}
-                  to={`/courses/${slug}`}
-                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
-                  style={{ backgroundColor: color }}
-                  title={course.title || course.name}
-                >
-                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
-                    {shortName}
-                  </div>
-                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
-                    {subtitle}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {entranceCourses.length > 8 && (
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-              <button
-                type="button"
-                onClick={() =>
-                  setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
-                }
-                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
-              >
-                {expandedSection.entrance ? (
-                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
-                ) : (
-                  <>View All {entranceCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
-                )}
-              </button>
-              <Link
-                to="/entrance-exams"
-                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
-              >
-                Entrance Exams Page <ChevronRight className="w-3 h-3" />
-              </Link>
-            </div>
-          )}
-        </div>
+        {/* Card 3: Entrance Exams */}
+        <ProgramCard
+          title="Entrance Exams"
+          subtitle="Engineering • Medical • Central Universities & State CETs"
+          courses={entranceCourses}
+          defaultTiles={defaultEntranceTiles}
+          isExpanded={expandedSection.entrance}
+          onToggleExpand={() =>
+            setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
+          }
+          pageLink="/entrance-exams"
+          pageLinkLabel="Entrance Exams Page"
+          fallbackColor="#48631E"
+          loading={coursesLoading}
+          getTileShortName={getTileShortName}
+        />
       </section>
 
       {/* ========================================================
@@ -780,101 +681,34 @@ export const HomePage = () => {
       ======================================================== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          {/* Card 1: Enquiry & Demo (Blue) */}
-          <Link
-            to="/enquiry"
-            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
-            style={{ backgroundColor: '#0080FF' }}
-          >
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <Mail className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
-                  Enquiry & Demo
-                </h4>
-                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
-                  Join our free demo classes
-                </p>
-              </div>
-            </div>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
-              <ArrowRight className="w-3 h-3 text-white" />
-            </div>
-          </Link>
-
-          {/* Card 2: Materials (Orange) */}
-          <Link
-            to="/recorded-classes"
-            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
-            style={{ backgroundColor: '#FF8C00' }}
-          >
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <FileText className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
-                  Materials
-                </h4>
-                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
-                  Get study notes
-                </p>
-              </div>
-            </div>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
-              <ArrowRight className="w-3 h-3 text-white" />
-            </div>
-          </Link>
-
-          {/* Card 3: Classes (Green) */}
-          <Link
-            to="/online-classes"
-            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
-            style={{ backgroundColor: '#00C853' }}
-          >
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <MonitorPlay className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
-                  Classes
-                </h4>
-                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
-                  Live & Recorded
-                </p>
-              </div>
-            </div>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
-              <ArrowRight className="w-3 h-3 text-white" />
-            </div>
-          </Link>
-
-          {/* Card 4: Exams (Purple) */}
-          <Link
-            to="/mock-tests"
-            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
-            style={{ backgroundColor: '#9B51E0' }}
-          >
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <ClipboardList className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
-                  Exams
-                </h4>
-                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
-                  Mock tests & Online tests
-                </p>
-              </div>
-            </div>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
-              <ArrowRight className="w-3 h-3 text-white" />
-            </div>
-          </Link>
+          {actionCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Link
+                key={card.title}
+                to={card.path}
+                className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                    <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <h4 className="font-black text-xs sm:text-sm leading-tight text-white truncate">
+                      {card.title}
+                    </h4>
+                    <p className="text-[8px] sm:text-[10px] text-white/90 font-medium truncate">
+                      {card.subtitle}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform ml-1">
+                  <ArrowRight className="w-3 h-3 text-white" />
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -883,7 +717,7 @@ export const HomePage = () => {
       ======================================================== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
-          {/* Header with floating graduation cap badge */}
+          {/* Header with graduation cap badge */}
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
@@ -903,119 +737,55 @@ export const HomePage = () => {
           </div>
 
           {/* 4 Feature Cards (2x2 Grid) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {/* Card 1: Daily Planner */}
-            <div className="p-4 rounded-xl bg-[#EBF5FB] border border-[#D4EBF8] space-y-2 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#0070F3] flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-[#0070F3]" />
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 pt-1">
+            {planFeatures.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className={`p-3 sm:p-4 rounded-xl ${item.cardBg} border ${item.border} space-y-1.5 flex flex-col justify-between`}
+                >
+                  <div className="space-y-1 sm:space-y-1.5">
+                    <div
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${item.iconBg} flex items-center justify-center`}
+                    >
+                      <Icon
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                        style={{ color: item.iconColor }}
+                      />
+                    </div>
+                    <h4 className="font-extrabold text-xs sm:text-sm text-[#0B2545]">
+                      {item.title}
+                    </h4>
+                    <p className="text-[10px] sm:text-[11px] text-slate-600 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
                 </div>
-                <h4 className="font-extrabold text-sm text-[#0B2545]">Daily Planner</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Structured daily schedule to cover complete syllabus on time.
-                </p>
-              </div>
-              <Link
-                to="/recorded-classes"
-                className="text-[11px] font-black text-[#0070F3] hover:underline inline-flex items-center gap-1.5 pt-1"
-              >
-                <span>VIEW SYLLABUS</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Card 2: Classes */}
-            <div className="p-4 rounded-xl bg-[#EAF9F1] border border-[#D1F2DF] space-y-2 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-[#00A86B] flex items-center justify-center">
-                  <MonitorPlay className="w-4 h-4 text-[#00A86B]" />
-                </div>
-                <h4 className="font-extrabold text-sm text-[#0B2545]">Classes</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Interactive live & high quality recorded video lectures.
-                </p>
-              </div>
-              <Link
-                to="/online-classes"
-                className="text-[11px] font-black text-[#00A86B] hover:underline inline-flex items-center gap-1.5 pt-1"
-              >
-                <span>EXPLORE CLASSES</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Card 3: Practice Exams */}
-            <div className="p-4 rounded-xl bg-[#F6EEFD] border border-[#E9D5FA] space-y-2 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 text-[#8A2BE2] flex items-center justify-center">
-                  <ClipboardList className="w-4 h-4 text-[#8A2BE2]" />
-                </div>
-                <h4 className="font-extrabold text-sm text-[#0B2545]">Practice Exams</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Chapter-wise quizzes and full-length online mock tests.
-                </p>
-              </div>
-              <Link
-                to="/mock-tests"
-                className="text-[11px] font-black text-[#8A2BE2] hover:underline inline-flex items-center gap-1.5 pt-1"
-              >
-                <span>ATTEMPT MOCK TEST</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Card 4: Expert Guidance */}
-            <div className="p-4 rounded-xl bg-[#FFF8EC] border border-[#FEE7C3] space-y-2 flex flex-col justify-between">
-              <div className="space-y-1.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#D97706] flex items-center justify-center">
-                  <Users className="w-4 h-4 text-[#D97706]" />
-                </div>
-                <h4 className="font-extrabold text-sm text-[#0B2545]">Expert Guidance</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Doubt sessions and personal mentoring by retired bankers & rankers.
-                </p>
-              </div>
-              <Link
-                to="/faculty"
-                className="text-[11px] font-black text-[#D97706] hover:underline inline-flex items-center gap-1.5 pt-1"
-              >
-                <span>MEET OUR FACULTY</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+              );
+            })}
           </div>
 
           {/* 3 Step-by-Step Roadmap items */}
           <div className="pt-2 space-y-2">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
-                01
-              </span>
-              <div>
-                <h5 className="font-bold text-xs text-[#0B2545]">Enroll in your course</h5>
-                <p className="text-[10px] text-slate-500">Get instant access to study material & video lectures.</p>
+            {roadmapSteps.map((stepItem) => (
+              <div
+                key={stepItem.step}
+                className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100"
+              >
+                <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
+                  {stepItem.step}
+                </span>
+                <div>
+                  <h5 className="font-bold text-xs text-[#0B2545]">
+                    {stepItem.title}
+                  </h5>
+                  <p className="text-[10px] text-slate-500">
+                    {stepItem.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
-                02
-              </span>
-              <div>
-                <h5 className="font-bold text-xs text-[#0B2545]">Learn & Practice</h5>
-                <p className="text-[10px] text-slate-500">Join daily live classes & take chapter-wise mock tests.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
-                03
-              </span>
-              <div>
-                <h5 className="font-bold text-xs text-[#0B2545]">Crack Exam & Reach Goal</h5>
-                <p className="text-[10px] text-slate-500">Achieve top ranks with continuous guidance & analysis.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
