@@ -377,21 +377,16 @@ export const AdminCourseFormPage = () => {
 
             {/* Tile Preview */}
             <div className="pt-2 border-t border-slate-200/80">
-              <span className="block text-[11px] font-bold text-slate-500 mb-1.5">Homepage Tile Preview:</span>
+              <span className="block text-[11px] font-bold text-slate-500 mb-1.5">Homepage Tile Preview (4-Column Style):</span>
               <div
-                className="max-w-xs p-3.5 rounded-xl text-white shadow-md transition-transform flex items-center justify-between"
+                className="w-32 px-2 py-2.5 rounded-xl text-white shadow-md text-center flex flex-col items-center justify-center gap-1 min-h-[66px]"
                 style={{ backgroundColor: formData.tileColor || '#007B88' }}
               >
-                <div>
-                  <div className="font-black text-sm uppercase tracking-wide">
-                    {formData.title?.split(' ')[0] || 'COURSE'}
-                  </div>
-                  <div className="text-[11px] text-white/90 font-medium">
-                    {formData.tileSubtitle || 'Short program subtitle'}
-                  </div>
+                <div className="font-black text-xs uppercase tracking-tight leading-tight w-full break-words line-clamp-2">
+                  {formData.title?.split(' ')[0] || 'COURSE'}
                 </div>
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
-                  <ArrowRight className="w-3.5 h-3.5" />
+                <div className="text-[9.5px] text-white/95 font-medium leading-[1.15] w-full break-words line-clamp-2">
+                  {formData.tileSubtitle || 'Short program subtitle'}
                 </div>
               </div>
             </div>

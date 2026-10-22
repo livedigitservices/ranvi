@@ -20,7 +20,101 @@ import {
 } from 'lucide-react';
 
 // ========================================================
-// 1. REUSABLE PROGRAM CARD COMPONENT (4x2 EXPANDABLE TILES)
+// 1. TILE HELPER FUNCTIONS (CLEAN TITLES & SUBTITLES)
+// ========================================================
+const getTileShortName = (course) => {
+  if (course?.tileShortName) return course.tileShortName;
+  if (course?.name && !course?.title) return course.name;
+  const t = course?.title || course?.name || '';
+  if (!t) return 'PROGRAM';
+  if (/^JAIIB/i.test(t)) return 'JAIIB';
+  if (/^CAIIB/i.test(t)) return 'CAIIB';
+  if (/\bDBF\b/i.test(t)) return 'DBF';
+  if (/\bDTM\b/i.test(t)) return 'DTM';
+  if (/\bAMFI\b/i.test(t)) return 'AMFI';
+  if (/\bNISM\b/i.test(t)) return 'NISM (SEBI)';
+  if (/\bIRDAI\b/i.test(t)) return 'IRDAI';
+  if (/\bDRA\b/i.test(t)) return 'DRA';
+  if (/^IBPS/i.test(t)) return 'IBPS';
+  if (/^SBI/i.test(t)) return 'SBI';
+  if (/^RBI/i.test(t)) return 'RBI';
+  if (/^SSC/i.test(t)) return 'SSC';
+  if (/\bRailways\b|\bRRB\b/i.test(t)) return 'RAILWAYS';
+  if (/Police/i.test(t)) return 'POLICE & DEFENCE';
+  if (/LIC/i.test(t)) return 'LIC / INSURANCE';
+  if (/Teaching/i.test(t)) return 'TEACHING';
+  if (/^JEE/i.test(t)) return 'JEE';
+  if (/^NEET/i.test(t)) return 'NEET-UG';
+  if (/^CUET/i.test(t)) return 'CUET';
+  if (/AP EAPCET/i.test(t)) return 'AP EAPCET';
+  if (/TG EAPCET/i.test(t)) return 'TG EAPCET';
+  if (/CLAT/i.test(t)) return 'CLAT';
+  if (/NDA/i.test(t)) return 'NDA';
+  if (/POLYCET/i.test(t)) return 'POLYCET';
+  if (/APRJC/i.test(t)) return 'APRJC CET';
+  if (/TGCET/i.test(t)) return 'TGCET';
+  const parts = t.split(' ');
+  return parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
+};
+
+const getTileSubtitle = (course, fallbackSubtitle = '') => {
+  const t = (course?.title || course?.name || '').toLowerCase();
+  const slug = (course?.slug || '').toLowerCase();
+  const rawSub = course?.tileSubtitle || course?.subtitle || '';
+
+  // 1. Direct canonical mappings matching reference UI perfectly
+  if (slug.includes('jaiib') || t.includes('jaiib')) return 'Junior Associate of IIBF';
+  if (slug.includes('caiib') || t.includes('caiib')) return 'Certified Associate of IIBF';
+  if (slug.includes('dbf') || t.includes('diploma in banking')) return 'Diploma in Banking & Finance';
+  if (slug.includes('dtm') || t.includes('treasury')) return 'Treasury & Risk Management';
+  if (slug.includes('amfi') || t.includes('mutual fund')) return 'Mutual Fund Certification';
+  if (slug.includes('nism') || t.includes('sebi')) return 'Securities Market Certification';
+  if (slug.includes('irdai') || t.includes('insurance regulatory')) return 'Insurance Agent & Broker';
+  if (slug.includes('dra') || t.includes('debt recovery')) return 'Debt Recovery Agent';
+
+  if (slug.includes('ibps') || t.startsWith('ibps')) return 'PO / Clerk / SO / RRB';
+  if (slug.includes('sbi') || t.startsWith('sbi')) return 'PO / Clerk / Specialist';
+  if (slug.includes('rbi') || t.startsWith('rbi')) return 'Grade B / Assistant';
+  if (slug.includes('ssc') || t.startsWith('ssc')) return 'CGL / CHSL / MTS';
+  if (slug.includes('railway') || slug.includes('rrb') || t.includes('railway')) return 'RRB NTPC / Group D';
+  if (slug.includes('police') || t.includes('police')) return 'SI / Constable / Defence';
+  if (slug.includes('lic') || t.includes('lic')) return 'AAO / ADO / Assistant';
+  if (slug.includes('teaching') || t.includes('teaching') || t.includes('ctet') || t.includes('dsc')) return 'TET / CTET / DSC';
+
+  if (slug.includes('jee') || t.startsWith('jee')) return 'Main / Advanced';
+  if (slug.includes('neet') || t.startsWith('neet')) return 'Medical Entrance';
+  if (slug.includes('cuet') || t.startsWith('cuet')) return 'Central Universities';
+  if (slug.includes('ap-eapcet') || t.includes('ap eapcet')) return 'Engineering / Agriculture';
+  if (slug.includes('tg-eapcet') || t.includes('tg eapcet')) return 'Engineering / Agriculture';
+  if (slug.includes('clat') || t.startsWith('clat')) return 'Law Entrance';
+  if (slug.includes('nda') || t.startsWith('nda')) return 'Defence Academy';
+  if (slug.includes('polycet') || t.includes('polycet')) return 'Polytechnic Diploma';
+  if (slug.includes('aprjc') || t.includes('aprjc')) return 'Intermediate Courses';
+  if (slug.includes('tgcet') || t.includes('tgcet')) return 'Gurukul Schools';
+
+  // 2. Clean up any verbose raw subtitle from custom admin courses
+  if (rawSub) {
+    return rawSub
+      .replace(/\s*•\s*/g, ' / ')
+      .replace(/\s*,\s*/g, ' / ')
+      .replace(/Certified Course/gi, '')
+      .replace(/Comprehensive Batch/gi, '')
+      .replace(/Target Coaching Batch/gi, '')
+      .replace(/Prep Series/gi, '')
+      .replace(/Certification Batch/gi, '')
+      .replace(/Master Batch/gi, '')
+      .replace(/Super 60 Batch/gi, '')
+      .replace(/Intensive Batch/gi, '')
+      .replace(/Foundation Batch/gi, '')
+      .replace(/Foundation Course/gi, '')
+      .trim();
+  }
+
+  return fallbackSubtitle || course?.shortDescription || '';
+};
+
+// ========================================================
+// 2. REUSABLE PROGRAM CARD COMPONENT (4x2 EXPANDABLE TILES)
 // ========================================================
 const ProgramCard = ({
   title,
@@ -33,7 +127,6 @@ const ProgramCard = ({
   pageLinkLabel,
   fallbackColor,
   loading,
-  getTileShortName,
 }) => {
   const displayCourses =
     courses.length > 0
@@ -45,7 +138,7 @@ const ProgramCard = ({
       : defaultTiles;
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+    <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-xs space-y-3">
       {/* Card Header with in-place toggle */}
       <div className="flex items-center justify-between">
         <div>
@@ -85,24 +178,24 @@ const ProgramCard = ({
       {/* 4 columns x 2 rows Responsive Grid */}
       <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
         {displayCourses.map((course, idx) => {
-          const shortName = course.slug ? getTileShortName(course) : course.name;
-          const courseSubtitle =
-            course.tileSubtitle || course.subtitle || course.shortDescription;
-          const color = course.tileColor || course.color || fallbackColor;
-          const slug = course.slug || defaultTiles[idx % 8]?.slug;
+          const fallback = defaultTiles[idx % defaultTiles.length] || {};
+          const shortName = getTileShortName(course) || fallback.name;
+          const courseSubtitle = getTileSubtitle(course, fallback.subtitle);
+          const color = course.tileColor || course.color || fallback.color || fallbackColor;
+          const slug = course.slug || fallback.slug;
 
           return (
             <Link
               key={course._id || idx}
               to={`/courses/${slug}`}
-              className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
+              className="group min-w-0 px-1 py-1.5 sm:px-2 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center text-center gap-0.5 sm:gap-1 min-h-[58px] sm:min-h-[66px] md:min-h-[72px] overflow-hidden"
               style={{ backgroundColor: color }}
               title={course.title || course.name}
             >
-              <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
+              <div className="font-black text-[9.5px] sm:text-xs md:text-sm tracking-tight uppercase leading-[1.1] drop-shadow-xs w-full px-0.5 break-words line-clamp-2 text-center">
                 {shortName}
               </div>
-              <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
+              <div className="text-[7.5px] sm:text-[9px] md:text-[9.5px] lg:text-[10px] text-white/95 font-medium leading-[1.15] w-full px-0.5 break-words line-clamp-2 text-center">
                 {courseSubtitle}
               </div>
             </Link>
@@ -280,37 +373,7 @@ export const HomePage = () => {
     { name: 'POLYCET', subtitle: 'Polytechnic Diploma', color: '#512D6D', slug: 'polycet-diploma-entrance-exam' },
   ];
 
-  // Helper to extract clean acronym for tiles
-  const getTileShortName = (course) => {
-    if (!course?.title) return 'PROGRAM';
-    const t = course.title;
-    if (/^JAIIB/i.test(t)) return 'JAIIB';
-    if (/^CAIIB/i.test(t)) return 'CAIIB';
-    if (/\bDBF\b/i.test(t)) return 'DBF';
-    if (/\bDTM\b/i.test(t)) return 'DTM';
-    if (/\bAMFI\b/i.test(t)) return 'AMFI';
-    if (/\bNISM\b/i.test(t)) return 'NISM (SEBI)';
-    if (/\bIRDAI\b/i.test(t)) return 'IRDAI';
-    if (/\bDRA\b/i.test(t)) return 'DRA';
-    if (/^IBPS/i.test(t)) return 'IBPS';
-    if (/^SBI/i.test(t)) return 'SBI';
-    if (/^RBI/i.test(t)) return 'RBI';
-    if (/^SSC/i.test(t)) return 'SSC';
-    if (/\bRailways\b|\bRRB\b/i.test(t)) return 'RAILWAYS';
-    if (/Police/i.test(t)) return 'POLICE & DEFENCE';
-    if (/LIC/i.test(t)) return 'LIC / INSURANCE';
-    if (/Teaching/i.test(t)) return 'TEACHING';
-    if (/^JEE/i.test(t)) return 'JEE';
-    if (/^NEET/i.test(t)) return 'NEET-UG';
-    if (/^CUET/i.test(t)) return 'CUET';
-    if (/AP EAPCET/i.test(t)) return 'AP EAPCET';
-    if (/TG EAPCET/i.test(t)) return 'TG EAPCET';
-    if (/CLAT/i.test(t)) return 'CLAT';
-    if (/NDA/i.test(t)) return 'NDA';
-    if (/POLYCET/i.test(t)) return 'POLYCET';
-    const parts = t.split(' ');
-    return parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
-  };
+
 
   // 4 Action Hub Cards Config (Dynamic from Site Settings if configured)
   const defaultActionCards = [
