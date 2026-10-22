@@ -405,6 +405,26 @@ export const AdminSettingsPage = () => {
                 />
               </div>
 
+              <div className="md:col-span-2">
+                <label className="block font-extrabold text-slate-700 mb-1">
+                  Website Timezone (Security Audit Logs & Daily Midnight Cutoff)
+                </label>
+                <select
+                  value={settings.timezone || 'Asia/Kolkata'}
+                  onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-slate-800 bg-white cursor-pointer"
+                >
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST — UTC+05:30 — India Standard Time)</option>
+                  <option value="UTC">UTC (Coordinated Universal Time)</option>
+                  <option value="Asia/Dubai">Asia/Dubai (GST — UTC+04:00)</option>
+                  <option value="Europe/London">Europe/London (GMT / BST)</option>
+                  <option value="America/New_York">America/New_York (EST / EDT)</option>
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Security audit logs are retained strictly for the current day based on this timezone. Records older than 00:00:00 local time are automatically purged.
+                </p>
+              </div>
+
               {/* Gold Ribbon Tagline */}
               <div className="md:col-span-2 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
                 <label className="block font-extrabold text-amber-900">

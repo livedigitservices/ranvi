@@ -196,6 +196,9 @@ export const adminService = {
   getAuditLogs: async (params = {}) => {
     return api.get('/admin/audit-logs', { params });
   },
+  cleanupAuditLogs: async () => {
+    return api.post('/admin/audit-logs/cleanup');
+  },
   getAllPayments: async (params = {}) => {
     return api.get('/payments/admin/all', { params });
   },

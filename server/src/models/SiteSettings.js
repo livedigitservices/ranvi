@@ -18,6 +18,10 @@ const SiteSettingsSchema = new mongoose.Schema({
     type: String,
     default: 'Learn • Excel • Achieve',
   },
+  timezone: {
+    type: String,
+    default: 'Asia/Kolkata',
+  },
   topAnnouncement: {
     badgeText: { type: String, default: 'Admissions Open 2026' },
     message: { type: String, default: 'New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!' },

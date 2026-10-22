@@ -7,6 +7,11 @@ const Entitlement = require('../models/Entitlement');
 const DeviceSession = require('../models/DeviceSession');
 const AuditLog = require('../models/AuditLog');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const {
+  getTimezone,
+  getStartOfDayInTimezone,
+  cleanupExpiredAuditLogs,
+} = require('../utils/auditCleanupService');
 
 // Admin Dashboard Summary Metrics
 const getDashboardStats = async (req, res, next) => {
@@ -164,13 +169,30 @@ const toggleStudentStatus = async (req, res, next) => {
   }
 };
 
-// Admin: Get Audit Logs
+// Admin: Get Security Audit Logs (Current-Day Records Only)
 const getAuditLogs = async (req, res, next) => {
   try {
-    const { action, resource, page = 1, limit = 30 } = req.query;
-    const query = {};
+    const timezone = await getTimezone();
+    const startOfDay = getStartOfDayInTimezone(timezone);
+
+    // 1. Permanently delete all logs created before today's start in the database
+    const cleanupResult = await cleanupExpiredAuditLogs({ timezone, startOfDay });
+
+    // 2. Query today's logs only
+    const { action, resource, search, page = 1, limit = 50 } = req.query;
+    const query = {
+      createdAt: { $gte: startOfDay },
+    };
     if (action) query.action = action;
     if (resource) query.resource = resource;
+    if (search) {
+      query.$or = [
+        { userEmail: { $regex: search, $options: 'i' } },
+        { ipAddress: { $regex: search, $options: 'i' } },
+        { action: { $regex: search, $options: 'i' } },
+        { resource: { $regex: search, $options: 'i' } },
+      ];
+    }
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const total = await AuditLog.countDocuments(query);
@@ -179,8 +201,20 @@ const getAuditLogs = async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit, 10));
 
-    return sendSuccess(res, 'Audit logs retrieved', {
+    // Today's formatted date string in configured timezone
+    const todayFormatted = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+
+    return sendSuccess(res, "Today's security audit logs retrieved", {
       logs,
+      date: todayFormatted,
+      timezone,
+      startOfDay: startOfDay.toISOString(),
+      purgedCount: cleanupResult.deletedCount || 0,
       pagination: {
         total,
         page: parseInt(page, 10),
@@ -192,10 +226,26 @@ const getAuditLogs = async (req, res, next) => {
   }
 };
 
+// Admin: Trigger manual audit log cleanup of records prior to current day
+const triggerAuditLogCleanup = async (req, res, next) => {
+  try {
+    const timezone = await getTimezone();
+    const result = await cleanupExpiredAuditLogs({ timezone });
+    return sendSuccess(
+      res,
+      `Audit logs cleanup executed. Purged ${result.deletedCount} expired record(s) older than start of day.`,
+      result
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getStudents,
   resetStudentDevice,
   toggleStudentStatus,
   getAuditLogs,
+  triggerAuditLogCleanup,
 };

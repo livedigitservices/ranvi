@@ -3,10 +3,14 @@ const env = require('./config/env');
 const { connectDB } = require('./config/db');
 const User = require('./models/User');
 const seedAll = require('../scripts/seed');
+const { initAuditLogCleanupJob, stopAuditLogCleanupJob } = require('./utils/auditCleanupService');
 
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Initialize daily automated Security Audit Logs cleanup job
+    initAuditLogCleanupJob();
 
     // Check if database needs initial seeding in development
     const userCount = await User.countDocuments();
@@ -25,6 +29,7 @@ const startServer = async () => {
 
     const shutdown = () => {
       console.log('Shutting down server gracefully...');
+      stopAuditLogCleanupJob();
       server.close(() => {
         console.log('Process terminated.');
         process.exit(0);

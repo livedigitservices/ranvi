@@ -14,8 +14,15 @@ const Entitlement = require('../src/models/Entitlement');
 const Enquiry = require('../src/models/Enquiry');
 const EntranceExam = require('../src/models/EntranceExam');
 const SiteSettings = require('../src/models/SiteSettings');
+const AuditLog = require('../src/models/AuditLog');
 const { isValidZoomUrl } = require('../src/utils/zoomValidator');
 const { verifySignature } = require('../src/config/razorpay');
+const {
+  getTimezone,
+  getStartOfDayInTimezone,
+  cleanupExpiredAuditLogs,
+} = require('../src/utils/auditCleanupService');
+const { getAuditLogs, triggerAuditLogCleanup } = require('../src/controllers/adminController');
 const seedAll = require('./seed');
 
 const runTests = async () => {
@@ -314,6 +321,121 @@ const runTests = async () => {
       { key: 'global_settings' },
       { $set: { 'topAnnouncement.message': 'New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!' } }
     );
+
+    // ========================================================
+    // 10. Test Security Audit Logs (Current-Day Records Only & Cleanup)
+    // ========================================================
+    const tz = await getTimezone();
+    assert(typeof tz === 'string' && tz.length > 0, `Configured timezone resolved (${tz})`);
+
+    const startOfToday = getStartOfDayInTimezone(tz);
+    assert(startOfToday instanceof Date && !isNaN(startOfToday.getTime()), 'Start-of-day UTC cutoff calculated correctly');
+
+    // Create baseline test logs: 2 expired (from yesterday & 3 days ago) + 2 current-day logs
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const yesterday = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+    const todayNow = new Date();
+
+    // Clear any previous audit logs from prior tests
+    await AuditLog.deleteMany({});
+
+    // Seed expired logs
+    await AuditLog.create([
+      {
+        userEmail: 'old.admin1@ranvi.com',
+        userRole: 'ADMIN',
+        action: 'STUDENT_ACTIVATED',
+        resource: 'User',
+        createdAt: threeDaysAgo,
+      },
+      {
+        userEmail: 'old.admin2@ranvi.com',
+        userRole: 'ADMIN',
+        action: 'MANUAL_ACCESS_GRANTED',
+        resource: 'Course',
+        createdAt: yesterday,
+      },
+      {
+        userEmail: 'today.student@ranvi.com',
+        userRole: 'STUDENT',
+        action: 'LOGIN_SUCCESS',
+        resource: 'Auth',
+        createdAt: todayNow,
+      },
+      {
+        userEmail: 'today.admin@ranvi.com',
+        userRole: 'ADMIN',
+        action: 'STUDENT_DEVICE_RESET',
+        resource: 'DeviceSession',
+        createdAt: todayNow,
+      },
+    ]);
+
+    const countBeforeCleanup = await AuditLog.countDocuments();
+    assert(countBeforeCleanup === 4, 'Successfully inserted 4 test audit logs (2 expired + 2 today)');
+
+    // Count records in unrelated collections before cleanup to verify isolation
+    const userCountBefore = await User.countDocuments();
+    const courseCountBefore = await Course.countDocuments();
+
+    // Execute cleanup
+    const cleanupRes = await cleanupExpiredAuditLogs({ timezone: tz, startOfDay: startOfToday });
+    assert(cleanupRes.success === true, 'Audit log cleanup function executes successfully');
+    assert(cleanupRes.deletedCount === 2, `Exactly 2 expired audit logs deleted (purged: ${cleanupRes.deletedCount})`);
+
+    // Verify database state: only today's logs remain
+    const remainingLogs = await AuditLog.find().sort({ createdAt: -1 });
+    assert(remainingLogs.length === 2, `Database retains strictly current-day logs (remaining: ${remainingLogs.length})`);
+    assert(
+      remainingLogs.every((l) => l.createdAt >= startOfToday),
+      "Every remaining audit log in the database has createdAt >= start of today's date"
+    );
+
+    // Verify strict isolation: no unrelated collections or records were affected
+    const userCountAfter = await User.countDocuments();
+    const courseCountAfter = await Course.countDocuments();
+    assert(userCountBefore === userCountAfter, 'Unrelated collection integrity: User accounts completely untouched');
+    assert(courseCountBefore === courseCountAfter, 'Unrelated collection integrity: Courses collection completely untouched');
+
+    // Test getAuditLogs controller directly to verify API filtering and metadata
+    let apiResponseData = null;
+    let apiStatus = null;
+    const mockReq = { query: { limit: 10 } };
+    const mockRes = {
+      status: (code) => {
+        apiStatus = code;
+        return mockRes;
+      },
+      json: (payload) => {
+        apiResponseData = payload;
+        return mockRes;
+      },
+    };
+
+    await getAuditLogs(mockReq, mockRes, (err) => {
+      throw err;
+    });
+
+    assert(apiResponseData !== null && apiResponseData.success === true, 'getAuditLogs controller returns success');
+    assert(
+      Array.isArray(apiResponseData.data?.logs) && apiResponseData.data.logs.length === 2,
+      "getAuditLogs API returns exactly today's 2 logs and zero expired records"
+    );
+    assert(
+      apiResponseData.data?.timezone === tz,
+      `getAuditLogs API response contains accurate configured timezone (${apiResponseData.data?.timezone})`
+    );
+    assert(
+      typeof apiResponseData.data?.date === 'string' && apiResponseData.data.date.length === 10,
+      `getAuditLogs API response contains formatted current date (${apiResponseData.data?.date})`
+    );
+
+    // Test manual cleanup trigger endpoint
+    let cleanupApiResponse = null;
+    await triggerAuditLogCleanup(mockReq, mockRes, (err) => {
+      throw err;
+    });
+    assert(apiResponseData.success === true, 'triggerAuditLogCleanup admin endpoint returns success');
 
     console.log('\n🧪 =======================================================');
     console.log(`🧪 TEST RESULTS: ${passedCount} PASSED, ${failedCount} FAILED`);

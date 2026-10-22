@@ -12,5 +12,6 @@ router.get('/students', adminController.getStudents);
 router.post('/students/:studentId/reset-device', adminController.resetStudentDevice);
 router.put('/students/:studentId/toggle-status', adminController.toggleStudentStatus);
 router.get('/audit-logs', adminController.getAuditLogs);
+router.post('/audit-logs/cleanup', adminController.triggerAuditLogCleanup);
 
 module.exports = router;

@@ -1043,6 +1043,7 @@ const seedAll = async () => {
       institutionName: 'RANVI INSTITUTIONS',
       tagline: 'Your Next Career Milestones',
       supportingMessage: 'Learn • Excel • Achieve',
+      timezone: 'Asia/Kolkata',
       topAnnouncement: {
         badgeText: 'Admissions Open 2026',
         message: 'New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!',
