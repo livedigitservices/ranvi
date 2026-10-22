@@ -274,6 +274,32 @@ const runTests = async () => {
       'AP EAPCET course has custom tile color #B94715'
     );
 
+    // Test Course Draft & Publishing Lifecycle
+    const draftCourse = await Course.create({
+      title: 'NABARD Grade A Special Draft Course',
+      slug: 'nabard-grade-a-draft',
+      division: 'BANKERS_PATH',
+      shortDescription: 'Draft course for testing',
+      fullDescription: 'Complete description for draft course testing',
+      fee: 4999,
+      isPublished: false,
+    });
+    assert(draftCourse !== null && draftCourse.isPublished === false, 'Course can be created as draft (isPublished: false)');
+
+    const publicCoursesCount = await Course.countDocuments({ isPublished: true });
+    const allCoursesCount = await Course.countDocuments({});
+    assert(allCoursesCount === publicCoursesCount + 1, 'Draft course is excluded from public count but included in total count');
+
+    // Admin toggles draft course to published
+    draftCourse.isPublished = true;
+    await draftCourse.save();
+    assert(draftCourse.isPublished === true, 'Admin can toggle course to published live');
+
+    // Admin permanently deletes test course
+    await Course.deleteOne({ _id: draftCourse._id });
+    const checkDeleted = await Course.findById(draftCourse._id);
+    assert(checkDeleted === null, 'Admin can permanently delete test course');
+
     // ==========================================
     // 12. SITE SETTINGS & HERO BANNER INTEGRATION
     // ==========================================

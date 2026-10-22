@@ -53,7 +53,7 @@ const CourseSchema = new mongoose.Schema({
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: true,
+    required: false,
   },
   shortDescription: {
     type: String,

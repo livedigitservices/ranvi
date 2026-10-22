@@ -15,7 +15,7 @@ export const AdminCoursesPage = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const params = { limit: 100 };
+      const params = { limit: 100, includeUnpublished: 'true' };
       if (selectedDivision !== 'ALL') {
         params.division = selectedDivision;
       }
@@ -51,12 +51,25 @@ export const AdminCoursesPage = () => {
     fetchCourses();
   }, [selectedDivision, selectedState]);
 
-  const handleDeleteCourse = async (id, title) => {
-    if (!window.confirm(`Are you sure you want to unpublish the course "${title}"?`)) return;
+  const handleTogglePublish = async (course) => {
     try {
-      const res = await adminService.deleteCourse(id);
+      const updatedStatus = !course.isPublished;
+      const res = await adminService.updateCourse(course._id, { isPublished: updatedStatus });
       if (res.success) {
-        success('Course unpublished successfully');
+        success(`"${course.title}" is now ${updatedStatus ? 'Published live' : 'saved as Draft'}`);
+        fetchCourses();
+      }
+    } catch (err) {
+      toastError(err.message || 'Failed to update course status');
+    }
+  };
+
+  const handleDeleteCourse = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete course "${title}"?\n\nClick OK to confirm permanent deletion.`)) return;
+    try {
+      const res = await adminService.deleteCourse(`${id}?permanent=true`);
+      if (res.success) {
+        success('Course permanently deleted');
         fetchCourses();
       }
     } catch (err) {
@@ -150,13 +163,14 @@ export const AdminCoursesPage = () => {
                   <th className="p-4 font-bold">Mode</th>
                   <th className="p-4 font-bold">Duration</th>
                   <th className="p-4 font-bold">Fee (INR)</th>
+                  <th className="p-4 font-bold">Status</th>
                   <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {courses.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
+                    <td colSpan={8} className="p-8 text-center text-slate-500 font-medium">
                       No courses match your filter criteria.
                     </td>
                   </tr>
@@ -222,6 +236,27 @@ export const AdminCoursesPage = () => {
                       <td className="p-4 font-semibold">{course.mode}</td>
                       <td className="p-4">{course.duration}</td>
                       <td className="p-4 font-black text-[#12356B]">₹{course.fee}</td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => handleTogglePublish(course)}
+                          className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all border ${
+                            course.isPublished
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
+                          }`}
+                          title="Click to toggle publish / draft status"
+                        >
+                          {course.isPublished ? (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Published
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-3.5 h-3.5 text-amber-600" /> Draft
+                            </>
+                          )}
+                        </button>
+                      </td>
                       <td className="p-4 text-right space-x-1.5">
                         <Link
                           to={`/courses/${course.slug}`}

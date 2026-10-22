@@ -6,8 +6,12 @@ const { sendSuccess, sendError } = require('../utils/responseHelper');
 // Public: Get all courses with filters and pagination
 const getCourses = async (req, res, next) => {
   try {
-    const { division, category, search, page = 1, limit = 12, mode, featured, state } = req.query;
-    const conditions = [{ isPublished: true }];
+    const { division, category, search, page = 1, limit = 12, mode, featured, state, includeUnpublished } = req.query;
+    const conditions = [];
+
+    if (includeUnpublished !== 'true') {
+      conditions.push({ isPublished: true });
+    }
 
     if (division) {
       conditions.push({ division: division.toUpperCase() });
@@ -52,7 +56,7 @@ const getCourses = async (req, res, next) => {
       });
     }
 
-    const query = conditions.length === 1 ? conditions[0] : { $and: conditions };
+    const query = conditions.length === 0 ? {} : (conditions.length === 1 ? conditions[0] : { $and: conditions });
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const total = await Course.countDocuments(query);
@@ -80,7 +84,15 @@ const getCourses = async (req, res, next) => {
 const getCourseBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const course = await Course.findOne({ slug, isPublished: true })
+    const isObjectId = slug.match(/^[0-9a-fA-F]{24}$/);
+    const query = isObjectId ? { $or: [{ slug }, { _id: slug }] } : { slug };
+
+    const isAdmin = req.user && ['SUPER_ADMIN', 'ADMIN'].includes(req.user.role);
+    if (!isAdmin && req.query.includeUnpublished !== 'true') {
+      query.isPublished = true;
+    }
+
+    const course = await Course.findOne(query)
       .populate('categoryId', 'name slug icon color division');
 
     if (!course) {
@@ -165,7 +177,16 @@ const createCourse = async (req, res, next) => {
       tileSubtitle,
       tileColor,
       displayOrder,
+      isPublished,
     } = req.body;
+
+    let resolvedCategoryId = categoryId;
+    if (!resolvedCategoryId) {
+      const fallbackCat = await Category.findOne(division ? { division } : {});
+      if (fallbackCat) {
+        resolvedCategoryId = fallbackCat._id;
+      }
+    }
 
     const courseSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -178,7 +199,7 @@ const createCourse = async (req, res, next) => {
       title,
       slug: courseSlug,
       division,
-      categoryId,
+      categoryId: resolvedCategoryId,
       shortDescription,
       fullDescription,
       thumbnail,
@@ -200,6 +221,7 @@ const createCourse = async (req, res, next) => {
       seoDescription: seoDescription || shortDescription,
       tags: tags || [],
       isFeatured: isFeatured || false,
+      isPublished: isPublished !== undefined ? isPublished : true,
       states: Array.isArray(states) && states.length > 0 ? states : ['All India'],
       tileSubtitle: tileSubtitle || '',
       tileColor: tileColor || '',
@@ -227,14 +249,19 @@ const updateCourse = async (req, res, next) => {
   }
 };
 
-// Admin: Delete course
+// Admin: Delete course (permanent or soft-unpublish)
 const deleteCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { permanent } = req.query;
     const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
     const course = await Course.findOne(query);
     if (!course) {
       return sendError(res, 'Course not found', 404);
+    }
+    if (permanent === 'true') {
+      await Course.deleteOne({ _id: course._id });
+      return sendSuccess(res, 'Course permanently deleted successfully');
     }
     // Soft delete or unpublish
     course.isPublished = false;

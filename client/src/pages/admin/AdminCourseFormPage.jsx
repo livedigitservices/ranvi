@@ -73,6 +73,7 @@ export const AdminCourseFormPage = () => {
     validityDays: 180,
     isDemoEligible: true,
     isFeatured: true,
+    isPublished: true,
     thumbnail: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=800&auto=format&fit=crop',
     syllabus: [
       {
@@ -114,6 +115,7 @@ export const AdminCourseFormPage = () => {
               validityDays: c.validityDays || 180,
               isDemoEligible: c.isDemoEligible ?? true,
               isFeatured: c.isFeatured ?? true,
+              isPublished: c.isPublished ?? true,
               thumbnail: c.thumbnail || '',
               syllabus: c.syllabus?.length > 0 ? c.syllabus : [
                 { title: 'Module 1: Fundamentals', description: '', topics: ['Topic 1'] }
@@ -574,6 +576,59 @@ export const AdminCourseFormPage = () => {
               placeholder="Detailed syllabus outline, eligibility, faculty background, and study plan..."
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200"
             />
+          </div>
+
+          {/* Publishing & Visibility Controls */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <h4 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+              Publishing & Visibility Options
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-300 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.isPublished}
+                  onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
+                  className="mt-0.5 rounded text-[#1769D2] focus:ring-[#1769D2]"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">Published Live</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight mt-0.5">
+                    Course is publicly visible and open for enrolment
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-300 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.isFeatured}
+                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                  className="mt-0.5 rounded text-[#1769D2] focus:ring-[#1769D2]"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">Featured Course</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight mt-0.5">
+                    Prioritize on homepage tiles and course cards
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-300 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.isDemoEligible}
+                  onChange={(e) => setFormData({ ...formData, isDemoEligible: e.target.checked })}
+                  className="mt-0.5 rounded text-[#1769D2] focus:ring-[#1769D2]"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">Free Demo Trial</span>
+                  <span className="text-[10px] text-slate-500 block leading-tight mt-0.5">
+                    Enable preview lessons and sample test for trial users
+                  </span>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Row 6: Course Thumbnail Upload */}
