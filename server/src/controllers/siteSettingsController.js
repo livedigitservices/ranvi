@@ -51,6 +51,18 @@ const updateSettings = async (req, res, next) => {
       }
     }
 
+    // Cross-sync banner strip & section names
+    if (updateData.bannerStrip?.tagline && !updateData.bannerStripText) {
+      updateData.bannerStripText = updateData.bannerStrip.tagline;
+    } else if (updateData.bannerStripText && (!updateData.bannerStrip || !updateData.bannerStrip.tagline)) {
+      updateData.bannerStrip = { tagline: updateData.bannerStripText };
+    }
+    if (updateData.competitiveSection && !updateData.competitiveExamsSection) {
+      updateData.competitiveExamsSection = updateData.competitiveSection;
+    } else if (updateData.competitiveExamsSection && !updateData.competitiveSection) {
+      updateData.competitiveSection = updateData.competitiveExamsSection;
+    }
+
     const settings = await SiteSettings.findOneAndUpdate(
       { key: 'global_settings' },
       { $set: updateData },

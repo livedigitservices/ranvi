@@ -4,7 +4,6 @@ import { PageBanner } from '../../components/common/PageBanner';
 import { entranceExamService } from '../../services';
 import {
   GraduationCap,
-  Sparkles,
   Search,
   Filter,
   CheckCircle2,
@@ -455,38 +454,6 @@ export const EntranceExamsPage = () => {
               </div>
             );
           })}
-        </div>
-
-        {/* Bottom Comprehensive CTA Box */}
-        <div className="bg-gradient-to-r from-[#0B1E3D] via-[#12356B] to-[#1769D2] text-white rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="max-w-3xl space-y-4 relative z-10">
-            <span className="inline-flex items-center gap-2 bg-[#F4B942] text-[#0B1E3D] px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" /> Admissions Counseling Open 2026
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black font-heading leading-tight">
-              Unsure which Entrance Exam batch fits your academic goals?
-            </h2>
-            <p className="text-xs sm:text-base text-blue-100 leading-relaxed max-w-2xl">
-              Speak directly with our senior mentors and ex-faculty leads. We provide individual counseling, past year cutoff analytics, study planners, and scholarship eligibility assessments.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                to="/enquiry"
-                className="bg-[#F4B942] hover:bg-amber-300 text-[#0B1E3D] font-black px-7 py-3 rounded-xl text-xs sm:text-sm shadow-lg transition-all active:scale-95"
-              >
-                Book Free Counseling & Demo
-              </Link>
-              <Link
-                to="/mock-tests"
-                className="bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-colors"
-              >
-                Practice Free CBT Mock Tests
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

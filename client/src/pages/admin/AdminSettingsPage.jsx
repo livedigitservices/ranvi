@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { adminService, uploadService } from '../../services';
+import { Link } from 'react-router-dom';
+import { adminService } from '../../services';
 import { useToast } from '../../context/ToastContext';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 import {
@@ -8,21 +9,23 @@ import {
   Sparkles,
   Layers,
   GraduationCap,
-  Video,
-  FileCheck2,
-  MapPin,
+  BookOpen,
+  PhoneCall,
   MessageSquare,
   HelpCircle,
-  PhoneCall,
-  ShieldCheck,
+  Award,
   Plus,
   Trash2,
-  Upload,
-  Image as ImageIcon,
   CheckCircle2,
-  TrendingUp,
-  Award,
-  BookOpen,
+  ExternalLink,
+  Shield,
+  Star,
+  MonitorPlay,
+  Users,
+  FileText,
+  ClipboardList,
+  Mail,
+  Share2,
 } from 'lucide-react';
 
 export const AdminSettingsPage = () => {
@@ -32,8 +35,7 @@ export const AdminSettingsPage = () => {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('hero');
-  const [uploadingHeroImg, setUploadingHeroImg] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -41,30 +43,178 @@ export const AdminSettingsPage = () => {
         const res = await adminService.getSiteSettings();
         if (res.success && res.data) {
           const data = { ...res.data };
+
+          // Normalize nested sections with resilient defaults
+          data.topAnnouncement = {
+            badgeText: 'Admissions Open 2026',
+            message: 'New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!',
+            phone: '+91 98765 43210',
+            isActive: true,
+            ...(data.topAnnouncement || {}),
+          };
+
           data.heroBanner = {
             badgeText: "India's Premier Coaching for Banking & Government Exams",
             headline: 'Build Your Banking & Government Career with Us',
             highlightWord: 'Banking & Government',
+            headlinePrefix: 'Build Your',
+            headlineHighlight: 'Banking & Government',
+            headlineSuffix: 'Career with Us',
             subheadline:
-              'expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
-            primaryCtaText: "Explore Banker's Path",
-            primaryCtaLink: '/bankers-path',
-            secondaryCtaText: 'Book Free Demo',
-            secondaryCtaLink: '/enquiry',
-            heroImage:
-              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
+              'Expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
+            heroImage: '/assets/hero-banner.png',
             ...(data.heroBanner || {}),
           };
-          if (!data.heroBanner.headline && data.heroBanner.headlinePrefix) {
-            data.heroBanner.headline = `${data.heroBanner.headlinePrefix} ${data.heroBanner.headlineHighlight || ''} ${data.heroBanner.headlineSuffix || ''}`.trim();
-          }
-          if (!data.heroBanner.heroImage && data.heroBanner.heroImageUrl) {
-            data.heroBanner.heroImage = data.heroBanner.heroImageUrl;
-          }
+
+          data.bannerStripText =
+            data.bannerStripText ||
+            data.bannerStrip?.tagline ||
+            data.supportingMessage ||
+            'Learn • Excel • Achieve';
+
+          data.bankersPathSection = {
+            title: "Banker's Path",
+            subtitle: 'Banking • Insurance • Finance',
+            ...(data.bankersPathSection || {}),
+          };
+
+          data.competitiveExamsSection = {
+            title: 'Competitive Exams',
+            subtitle: 'Government Jobs • Banking • Railways • Defence & More',
+            ...(data.competitiveExamsSection || data.competitiveSection || {}),
+          };
+
+          data.entranceExamsSection = {
+            title: 'Entrance Exams',
+            subtitle: 'Engineering • Medical • Central Universities & State CETs',
+            ...(data.entranceExamsSection || {}),
+          };
+
+          data.actionCards =
+            Array.isArray(data.actionCards) && data.actionCards.length === 4
+              ? data.actionCards
+              : [
+                  {
+                    title: 'Enquiry & Demo',
+                    subtitle: 'Join our free demo classes',
+                    path: '/enquiry',
+                    bgColor: '#0080FF',
+                  },
+                  {
+                    title: 'Materials',
+                    subtitle: 'Get study notes',
+                    path: '/recorded-classes',
+                    bgColor: '#FF8C00',
+                  },
+                  {
+                    title: 'Classes',
+                    subtitle: 'Live & Recorded',
+                    path: '/online-classes',
+                    bgColor: '#00C853',
+                  },
+                  {
+                    title: 'Exams',
+                    subtitle: 'Mock tests & Online tests',
+                    path: '/mock-tests',
+                    bgColor: '#9B51E0',
+                  },
+                ];
+
+          data.clearPlanSection = {
+            badge: 'PREPARE WITH STRUCTURED METHODOLOGY',
+            title: 'Learn with a Clear Plan',
+            description:
+              'Focus on what matters most with our structured approach that turns aspirants into achievers.',
+            features: [
+              {
+                title: 'Daily Planner',
+                desc: 'Structured daily schedule to cover complete syllabus on time.',
+              },
+              {
+                title: 'Classes',
+                desc: 'Interactive live & high quality recorded video lectures.',
+              },
+              {
+                title: 'Practice Exams',
+                desc: 'Chapter-wise quizzes and full-length online mock tests.',
+              },
+              {
+                title: 'Expert Guidance',
+                desc: 'Doubt sessions and personal mentoring by retired bankers & rankers.',
+              },
+            ],
+            ...(data.clearPlanSection || {}),
+          };
+
+          data.roadmapSection = {
+            title: 'Roadmap',
+            steps: [
+              {
+                step: '01',
+                title: 'Enroll in your course',
+                desc: 'Get instant access to study material & video lectures.',
+              },
+              {
+                step: '02',
+                title: 'Learn & Practice',
+                desc: 'Join daily live classes & take chapter-wise mock tests.',
+              },
+              {
+                step: '03',
+                title: 'Crack Exam & Reach Goal',
+                desc: 'Achieve top ranks with continuous guidance & analysis.',
+              },
+            ],
+            ...(data.roadmapSection || {}),
+          };
+
+          data.aboutSection = {
+            legacyTitle: 'Shaping India’s Next Generation of Banking Leaders & Public Servants',
+            legacyText1:
+              'Founded by veteran bankers and educationists, Ranvi Institutions stands at the forefront of career development for banking employees and competitive recruitment aspirants.',
+            legacyText2:
+              'We specialize in IIBF-accredited certifications (JAIIB, CAIIB, DBF, DTM) and premier government examinations (IBPS PO/Clerk, SBI PO, RBI Grade B, SSC CGL, Railways). Our pedagogical model pairs conceptual mastery with rigorous computer-based exam simulations.',
+            stats: [
+              { label: 'Students Trained', value: '25,000+' },
+              { label: '1st Attempt Clear', value: '89.4%' },
+              { label: 'Ex-Banker Faculty', value: '45+' },
+            ],
+            missionText:
+              'To deliver accessible, result-driven, and ethically grounded coaching that empowers every banking professional and competitive exam aspirant to achieve their highest career milestones with confidence and conceptual clarity.',
+            visionText:
+              'To be recognized as India’s most trusted educational institution for professional banking certifications and government recruitment, setting the standard for quality pedagogy and student success rates.',
+            ...(data.aboutSection || {}),
+          };
+
+          data.contactInfo = {
+            phone: '+91 98765 43210',
+            email: 'admissions@ranviinstitutions.com',
+            whatsapp: '+91 98765 43210',
+            address: 'Ranvi Knowledge Tower, MG Road Coaching Hub, India',
+            workingHours: 'Monday - Saturday: 8:00 AM - 8:00 PM IST',
+            ...(data.contactInfo || {}),
+          };
+
+          data.socialLinks = {
+            whatsapp: 'https://wa.me/919876543210',
+            youtube: 'https://youtube.com',
+            instagram: 'https://instagram.com',
+            facebook: 'https://facebook.com',
+            linkedin: 'https://linkedin.com',
+            telegram: 'https://telegram.org',
+            ...(data.socialLinks || {}),
+          };
+
+          data.demoPolicy = {
+            freeRecordedLessonsLimit: 2,
+            freeMockTestsLimit: 1,
+            ...(data.demoPolicy || {}),
+          };
+
           setSettings(data);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load settings:', err);
         toastError('Failed to load website settings');
       } finally {
         setLoading(false);
@@ -73,33 +223,21 @@ export const AdminSettingsPage = () => {
     fetchSettings();
   }, []);
 
-  const handleHeroImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setUploadingHeroImg(true);
-      const res = await uploadService.uploadImage(file);
-      if (res.success && res.data?.url) {
-        setSettings((prev) => ({
-          ...prev,
-          heroBanner: { ...prev.heroBanner, heroImage: res.data.url },
-        }));
-        success('Hero image uploaded successfully!');
-      }
-    } catch (err) {
-      toastError(err.message || 'Image upload failed');
-    } finally {
-      setUploadingHeroImg(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
     try {
-      const res = await adminService.updateSiteSettings(settings);
+      // Sync bannerStrip text across both keys
+      const payload = {
+        ...settings,
+        bannerStripText: settings.bannerStripText || settings.supportingMessage || 'Learn • Excel • Achieve',
+        supportingMessage: settings.bannerStripText || settings.supportingMessage || 'Learn • Excel • Achieve',
+        bannerStrip: { tagline: settings.bannerStripText || 'Learn • Excel • Achieve' },
+      };
+
+      const res = await adminService.updateSiteSettings(payload);
       if (res.success) {
-        success('All website settings updated & synchronized successfully!');
+        success('Website settings updated & synchronized live across the website!');
         if (refreshSettings) refreshSettings();
       }
     } catch (err) {
@@ -109,7 +247,7 @@ export const AdminSettingsPage = () => {
     }
   };
 
-  // Helper to add/remove dynamic array items
+  // Testimonial helpers
   const addTestimonial = () => {
     setSettings((prev) => ({
       ...prev,
@@ -120,8 +258,9 @@ export const AdminSettingsPage = () => {
           designation: 'Assistant Manager, SBI',
           exam: 'Cleared JAIIB 2026',
           quote: 'Excellent coaching and practice tests provided by Ranvi Institutions.',
-          image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop',
-          rating: 5,
+          image:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop',
+          stars: 5,
         },
       ],
     }));
@@ -134,6 +273,7 @@ export const AdminSettingsPage = () => {
     }));
   };
 
+  // FAQ helpers
   const addFaq = () => {
     setSettings((prev) => ({
       ...prev,
@@ -141,8 +281,8 @@ export const AdminSettingsPage = () => {
         ...(prev.faqs || []),
         {
           question: 'New Question?',
-          answer: 'Answer to the question goes here.',
-          category: 'GENERAL',
+          answer: 'Comprehensive answer goes here.',
+          category: 'General',
         },
       ],
     }));
@@ -156,15 +296,14 @@ export const AdminSettingsPage = () => {
   };
 
   const tabs = [
-    { id: 'hero', label: 'Hero & Banner', icon: Sparkles },
-    { id: 'bankers', label: "Banker's Path", icon: Layers },
-    { id: 'competitive', label: 'Competitive Exams', icon: GraduationCap },
-    { id: 'hubs', label: '4 Action Hubs', icon: BookOpen },
-    { id: 'zoom', label: 'Live Zoom & Tests', icon: Video },
-    { id: 'roadmap', label: 'Roadmap & About', icon: Award },
+    { id: 'general', label: 'General & Top Bar', icon: Settings },
+    { id: 'hero', label: 'Hero Banner (Static)', icon: Sparkles },
+    { id: 'programs', label: 'Coaching Programs', icon: GraduationCap },
+    { id: 'actionHubs', label: 'Action Cards & Plan', icon: BookOpen },
+    { id: 'contact', label: 'Contact & Social Links', icon: PhoneCall },
+    { id: 'about', label: 'About Institute & Stats', icon: Award },
     { id: 'testimonials', label: 'Student Reviews', icon: MessageSquare },
     { id: 'faqs', label: 'FAQs & Help', icon: HelpCircle },
-    { id: 'contact', label: 'Contact & Policies', icon: PhoneCall },
   ];
 
   if (loading || !settings) {
@@ -178,30 +317,34 @@ export const AdminSettingsPage = () => {
 
   return (
     <div className="space-y-6 max-w-5xl pb-24">
-      {/* Header Bar with Action Button */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* ========================================================
+          1. HEADER BAR WITH IMMEDIATE SAVE & PUBLISH ACTION
+      ======================================================== */}
+      <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <h1 className="text-2xl font-extrabold text-[#0B1E3D] font-heading">
-              100% Dynamic Website Manager
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#0B1E3D] font-heading">
+              Website Settings Manager
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Modify any text, image, banner, course tile, testimonial, FAQ or contact detail. All changes reflect live instantly.
+            Configure dynamic branding, announcement bar, hero copy, coaching program headers, action cards, and contact links.
           </p>
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="inline-flex items-center gap-2 bg-[#12356B] hover:bg-[#0e2a56] text-white text-xs font-extrabold px-6 py-3 rounded-xl shadow-md transition-all disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 bg-[#12356B] hover:bg-[#0e2a56] active:scale-95 text-white text-xs font-extrabold px-6 py-3 rounded-xl shadow-md transition-all disabled:opacity-50 shrink-0"
         >
           <Save className="w-4 h-4" /> {saving ? 'Publishing Changes...' : 'Save & Publish Live'}
         </button>
       </div>
 
-      {/* Tabs Row */}
+      {/* ========================================================
+          2. SCROLLABLE TAB PILLS
+      ======================================================== */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -223,567 +366,149 @@ export const AdminSettingsPage = () => {
         })}
       </div>
 
-      {/* TAB CONTENT AREA */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-6">
-        {/* TAB 1: HERO & BANNER */}
-        {activeTab === 'hero' && (
+      {/* ========================================================
+          3. TAB CONTENT CARDS
+      ======================================================== */}
+      <div className="bg-white p-5 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+        {/* ----------------------------------------------------
+            TAB 1: GENERAL & TOP ANNOUNCEMENT BAR
+        ---------------------------------------------------- */}
+        {activeTab === 'general' && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Hero Banner & Brand Taglines</h2>
-              <p className="text-xs text-slate-500">Configure the top hero visual, main headline, and subtexts.</p>
+              <h2 className="text-lg font-black text-[#0B1E3D]">Brand Identity & Top Announcement</h2>
+              <p className="text-xs text-slate-500">
+                Configure institute name, global ribbon tagline, and top header notification.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-              <div className="md:col-span-2">
-                <label className="block font-extrabold text-slate-700 mb-1">Top Badge Pill Text</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block font-extrabold text-slate-700 mb-1">Institution Name</label>
                 <input
                   type="text"
-                  value={settings.heroBanner?.badgeText || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, badgeText: e.target.value },
-                    })
-                  }
-                  placeholder="India's Premier Coaching for Banking & Government Exams"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
+                  value={settings.institutionName || ''}
+                  onChange={(e) => setSettings({ ...settings, institutionName: e.target.value })}
+                  placeholder="RANVI INSTITUTIONS"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Main Headline</label>
+                <label className="block font-extrabold text-slate-700 mb-1">Brand Tagline</label>
                 <input
                   type="text"
-                  value={settings.heroBanner?.headline || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, headline: e.target.value },
-                    })
-                  }
-                  placeholder="Build Your Banking & Government Career with Us"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
+                  value={settings.tagline || ''}
+                  onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
+                  placeholder="Your Next Career Milestones"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-slate-800"
                 />
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Highlight Word in Headline</label>
-                <input
-                  type="text"
-                  value={settings.heroBanner?.highlightWord || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, highlightWord: e.target.value },
-                    })
-                  }
-                  placeholder="Banking & Government"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block font-extrabold text-slate-700 mb-1">Subheadline Description</label>
-                <textarea
-                  rows={2}
-                  value={settings.heroBanner?.subheadline || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, subheadline: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200"
-                />
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Primary CTA Button Text</label>
-                <input
-                  type="text"
-                  value={settings.heroBanner?.primaryCtaText || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, primaryCtaText: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Primary CTA Link</label>
-                <input
-                  type="text"
-                  value={settings.heroBanner?.primaryCtaLink || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      heroBanner: { ...settings.heroBanner, primaryCtaLink: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              {/* Hero Image Picker & Uploader */}
-              <div className="md:col-span-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <label className="block font-extrabold text-slate-800">Hero Student Visual (Photo)</label>
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  {settings.heroBanner?.heroImage && (
-                    <img
-                      src={settings.heroBanner.heroImage}
-                      alt="Hero Preview"
-                      className="w-24 h-24 rounded-2xl object-cover border border-slate-200 shadow-sm"
-                    />
-                  )}
-                  <div className="flex-1 w-full space-y-2">
-                    <input
-                      type="text"
-                      value={settings.heroBanner?.heroImage || ''}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          heroBanner: { ...settings.heroBanner, heroImage: e.target.value },
-                        })
-                      }
-                      placeholder="Image URL..."
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono text-[11px]"
-                    />
-                    <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#12356B] text-white font-bold cursor-pointer hover:bg-[#0e2a56] shadow-sm">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploadingHeroImg ? 'Uploading...' : 'Upload Image from Device'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleHeroImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
               </div>
 
               {/* Gold Ribbon Tagline */}
-              <div className="md:col-span-2 p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
-                <label className="block font-extrabold text-amber-900">Gold Banner Strip Tagline (Below Hero)</label>
+              <div className="md:col-span-2 p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
+                <label className="block font-extrabold text-amber-900">
+                  Gold Banner Ribbon Strip (Below Hero & In Navigation)
+                </label>
                 <input
                   type="text"
-                  value={settings.bannerStrip?.tagline || 'Learn • Excel • Achieve'}
+                  value={settings.bannerStripText || 'Learn • Excel • Achieve'}
                   onChange={(e) =>
                     setSettings({
                       ...settings,
-                      bannerStrip: { ...settings.bannerStrip, tagline: e.target.value },
+                      bannerStripText: e.target.value,
+                      supportingMessage: e.target.value,
                     })
                   }
                   className="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 font-black text-amber-900 bg-white"
                 />
               </div>
             </div>
-          </div>
-        )}
 
-        {/* TAB 2: BANKER'S PATH */}
-        {activeTab === 'bankers' && (
-          <div className="space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Banker's Path Section & Color Tiles</h2>
-              <p className="text-xs text-slate-500">Configure title, description, and the 8 course tiles.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Section Title</label>
-                <input
-                  type="text"
-                  value={settings.bankersPathSection?.title || "Banker's Path"}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      bankersPathSection: { ...settings.bankersPathSection, title: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Subtitle</label>
-                <input
-                  type="text"
-                  value={settings.bankersPathSection?.subtitle || 'Banking • Insurance • Finance Career Programs'}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      bankersPathSection: { ...settings.bankersPathSection, subtitle: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block font-extrabold text-slate-700 mb-1">Section Description</label>
-                <textarea
-                  rows={2}
-                  value={settings.bankersPathSection?.description || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      bankersPathSection: { ...settings.bankersPathSection, description: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
-
-            {/* Banker's Path Tiles List */}
-            <div className="space-y-3 pt-3">
-              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                8 Banker's Path Course Tiles
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {settings.bankersPathSection?.tiles?.map((tile, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-slate-400">TILE #{idx + 1}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                        {tile.name}
-                      </span>
-                    </div>
-                    <input
-                      type="text"
-                      value={tile.name}
-                      onChange={(e) => {
-                        const updated = [...settings.bankersPathSection.tiles];
-                        updated[idx].name = e.target.value;
-                        setSettings({
-                          ...settings,
-                          bankersPathSection: { ...settings.bankersPathSection, tiles: updated },
-                        });
-                      }}
-                      placeholder="Course Name (e.g. JAIIB)"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={tile.subtitle || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.bankersPathSection.tiles];
-                        updated[idx].subtitle = e.target.value;
-                        setSettings({
-                          ...settings,
-                          bankersPathSection: { ...settings.bankersPathSection, tiles: updated },
-                        });
-                      }}
-                      placeholder="Subtitle (e.g. IE&IFS • PPB)"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px]"
-                    />
-                    <input
-                      type="text"
-                      value={tile.path || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.bankersPathSection.tiles];
-                        updated[idx].path = e.target.value;
-                        setSettings({
-                          ...settings,
-                          bankersPathSection: { ...settings.bankersPathSection, tiles: updated },
-                        });
-                      }}
-                      placeholder="Target Link / Route"
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px] font-mono"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: COMPETITIVE EXAMS */}
-        {activeTab === 'competitive' && (
-          <div className="space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Competitive Exams Coaching</h2>
-              <p className="text-xs text-slate-500">Configure title, subtitle, and the 11 recruitment categories.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Section Title</label>
-                <input
-                  type="text"
-                  value={settings.competitiveSection?.title || 'Competitive Exams Coaching'}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      competitiveSection: { ...settings.competitiveSection, title: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-extrabold text-slate-700 mb-1">Subtitle</label>
-                <input
-                  type="text"
-                  value={settings.competitiveSection?.subtitle || 'Build Your Career. Prepare with Confidence.'}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      competitiveSection: { ...settings.competitiveSection, subtitle: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block font-extrabold text-slate-700 mb-1">Section Description</label>
-                <textarea
-                  rows={2}
-                  value={settings.competitiveSection?.description || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      competitiveSection: { ...settings.competitiveSection, description: e.target.value },
-                    })
-                  }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
-
-            {/* Competitive Exam Tiles */}
-            <div className="space-y-3 pt-3">
-              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                11 Competitive Exam Recruitment Badges
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {settings.competitiveSection?.tiles?.map((tile, idx) => (
-                  <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <input
-                      type="text"
-                      value={tile.name}
-                      onChange={(e) => {
-                        const updated = [...settings.competitiveSection.tiles];
-                        updated[idx].name = e.target.value;
-                        setSettings({
-                          ...settings,
-                          competitiveSection: { ...settings.competitiveSection, tiles: updated },
-                        });
-                      }}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={tile.path || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.competitiveSection.tiles];
-                        updated[idx].path = e.target.value;
-                        setSettings({
-                          ...settings,
-                          competitiveSection: { ...settings.competitiveSection, tiles: updated },
-                        });
-                      }}
-                      placeholder="Route link..."
-                      className="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[10px] font-mono"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: 4 ACTION HUBS */}
-        {activeTab === 'hubs' && (
-          <div className="space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">4 Quick Action Learning Hubs</h2>
-              <p className="text-xs text-slate-500">Live Zoom Classes, Recorded Video Bank, Exam Room, and Mentorship cards.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {settings.quickActionHubs?.map((hub, idx) => (
-                <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-[#1769D2]">CARD #{idx + 1}</span>
-                    <input
-                      type="text"
-                      value={hub.badge || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.quickActionHubs];
-                        updated[idx].badge = e.target.value;
-                        setSettings({ ...settings, quickActionHubs: updated });
-                      }}
-                      placeholder="Badge (e.g. Daily Live)"
-                      className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-0.5">Card Title</label>
-                    <input
-                      type="text"
-                      value={hub.title || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.quickActionHubs];
-                        updated[idx].title = e.target.value;
-                        setSettings({ ...settings, quickActionHubs: updated });
-                      }}
-                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-0.5">Description</label>
-                    <textarea
-                      rows={2}
-                      value={hub.description || ''}
-                      onChange={(e) => {
-                        const updated = [...settings.quickActionHubs];
-                        updated[idx].description = e.target.value;
-                        setSettings({ ...settings, quickActionHubs: updated });
-                      }}
-                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px]"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-0.5">Button Label</label>
-                      <input
-                        type="text"
-                        value={hub.buttonText || ''}
-                        onChange={(e) => {
-                          const updated = [...settings.quickActionHubs];
-                          updated[idx].buttonText = e.target.value;
-                          setSettings({ ...settings, quickActionHubs: updated });
-                        }}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-[11px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-0.5">Link Path</label>
-                      <input
-                        type="text"
-                        value={hub.link || ''}
-                        onChange={(e) => {
-                          const updated = [...settings.quickActionHubs];
-                          updated[idx].link = e.target.value;
-                          setSettings({ ...settings, quickActionHubs: updated });
-                        }}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px] font-mono"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: ZOOM & MOCK TESTS */}
-        {activeTab === 'zoom' && (
-          <div className="space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Zoom Classroom & Mock Test Banners</h2>
-              <p className="text-xs text-slate-500">Configure interactive banners for live batches and exam practice.</p>
-            </div>
-
-            {/* Zoom Banner */}
-            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-3 text-xs">
-              <h3 className="font-extrabold text-[#0B1E3D] text-sm">Interactive Zoom Classroom Banner</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Top Announcement Bar Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Headline</label>
+                  <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                    Top Announcement Bar (Header Notification)
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    The highlighted yellow pill and alert bar shown at the very top of all pages.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.topAnnouncement?.isActive !== false}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        topAnnouncement: {
+                          ...settings.topAnnouncement,
+                          isActive: e.target.checked,
+                        },
+                      })
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Badge Pill Text</label>
                   <input
                     type="text"
-                    value={settings.zoomSection?.headline || ''}
+                    value={settings.topAnnouncement?.badgeText || ''}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        zoomSection: { ...settings.zoomSection, headline: e.target.value },
+                        topAnnouncement: {
+                          ...settings.topAnnouncement,
+                          badgeText: e.target.value,
+                        },
                       })
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Batch Schedule Text</label>
-                  <input
-                    type="text"
-                    value={settings.zoomSection?.schedule || ''}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        zoomSection: { ...settings.zoomSection, schedule: e.target.value },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white font-bold"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={settings.zoomSection?.description || ''}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        zoomSection: { ...settings.zoomSection, description: e.target.value },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mock Test Callout */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
-              <h3 className="font-extrabold text-[#0B1E3D] text-sm">Online Mock Tests Callout</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Headline</label>
-                  <input
-                    type="text"
-                    value={settings.modelTestSection?.headline || ''}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        modelTestSection: { ...settings.modelTestSection, headline: e.target.value },
-                      })
-                    }
+                    placeholder="Admissions Open 2026"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
                   />
                 </div>
+
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Paper Count Badge</label>
+                  <label className="block font-bold text-slate-700 mb-1">Hotline Phone</label>
                   <input
                     type="text"
-                    value={settings.modelTestSection?.paperCountText || '10 to 20 Full-Length Mock Papers'}
+                    value={settings.topAnnouncement?.phone || ''}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        modelTestSection: { ...settings.modelTestSection, paperCountText: e.target.value },
+                        topAnnouncement: {
+                          ...settings.topAnnouncement,
+                          phone: e.target.value,
+                        },
                       })
                     }
+                    placeholder="+91 98765 43210"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
                   />
                 </div>
+
                 <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={settings.modelTestSection?.description || ''}
+                  <label className="block font-bold text-slate-700 mb-1">Notification Message</label>
+                  <input
+                    type="text"
+                    value={settings.topAnnouncement?.message || ''}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        modelTestSection: { ...settings.modelTestSection, description: e.target.value },
+                        topAnnouncement: {
+                          ...settings.topAnnouncement,
+                          message: e.target.value,
+                        },
                       })
                     }
+                    placeholder="New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
                   />
                 </div>
@@ -792,89 +517,543 @@ export const AdminSettingsPage = () => {
           </div>
         )}
 
-        {/* TAB 6: ROADMAP & ABOUT STATS */}
-        {activeTab === 'roadmap' && (
+        {/* ----------------------------------------------------
+            TAB 2: HERO BANNER (STATIC IMAGES MATCHING REFERENCE)
+        ---------------------------------------------------- */}
+        {activeTab === 'hero' && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Career Roadmap & About Platform Stats</h2>
-              <p className="text-xs text-slate-500">Configure the 6 milestone steps and high-impact achievement counters.</p>
+              <h2 className="text-lg font-black text-[#0B1E3D]">Hero Banner (Static Reference Design)</h2>
+              <p className="text-xs text-slate-500">
+                The hero banner uses the official, responsive static visual. Customize the main headline and feature labels.
+              </p>
             </div>
 
-            {/* Stats Counters */}
+            {/* Static Image Info Card */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-32 h-20 rounded-xl overflow-hidden border border-slate-300 shadow-xs shrink-0 bg-slate-800">
+                <img
+                  src="/assets/hero-banner.png"
+                  alt="Static Hero Preview"
+                  className="w-full h-full object-cover object-right"
+                  onError={(e) => {
+                    e.currentTarget.src = '/hero-banner.png';
+                  }}
+                />
+              </div>
+              <div className="space-y-1 text-center sm:text-left">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px] uppercase">
+                  <CheckCircle2 className="w-3 h-3" /> Fixed Static Image (Production-Optimized)
+                </div>
+                <h4 className="text-xs font-bold text-slate-800">
+                  Fixed Brand Hero Visual (/assets/hero-banner.png)
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Per the website specifications, dynamic slide uploads have been replaced with the high-yield static reference graphic to maintain fast load times and clean layout consistency.
+                </p>
+              </div>
+            </div>
+
+            {/* Headline Configuration */}
             <div className="space-y-3">
-              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                Hero & About Platform Statistics
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                Hero Headline Customization
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                {settings.aboutSection?.stats?.map((stat, idx) => (
-                  <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Headline Prefix</label>
+                  <input
+                    type="text"
+                    value={settings.heroBanner?.headlinePrefix || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        heroBanner: { ...settings.heroBanner, headlinePrefix: e.target.value },
+                      })
+                    }
+                    placeholder="Build Your"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Highlighted Phrase <span className="text-amber-600">(Gold Color)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.heroBanner?.headlineHighlight || settings.heroBanner?.highlightWord || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        heroBanner: {
+                          ...settings.heroBanner,
+                          headlineHighlight: e.target.value,
+                          highlightWord: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Banking & Government"
+                    className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-amber-50/50 font-bold text-amber-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Headline Suffix</label>
+                  <input
+                    type="text"
+                    value={
+                      settings.heroBanner?.headlineSuffix !== undefined
+                        ? settings.heroBanner.headlineSuffix
+                        : 'Career with Us'
+                    }
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        heroBanner: { ...settings.heroBanner, headlineSuffix: e.target.value },
+                      })
+                    }
+                    placeholder="Career with Us"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="p-4 rounded-xl bg-[#081A36] text-white">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Live Headline Preview:
+                </span>
+                <p className="text-lg sm:text-xl font-black font-serif">
+                  {settings.heroBanner?.headlinePrefix || 'Build Your'}{' '}
+                  <span className="text-[#F4B942]">
+                    {settings.heroBanner?.headlineHighlight ||
+                      settings.heroBanner?.highlightWord ||
+                      'Banking & Government'}
+                  </span>{' '}
+                  {settings.heroBanner?.headlineSuffix !== undefined
+                    ? settings.heroBanner.headlineSuffix
+                    : 'Career with Us'}
+                </p>
+              </div>
+            </div>
+
+            {/* 4 Feature Badges Preview */}
+            <div className="space-y-2 pt-2">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                4 Fixed Trust Highlights (Under Headline)
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                  <Shield className="w-5 h-5 text-[#12356B] mb-1" />
+                  <span className="text-xs font-extrabold text-slate-800">Expert Faculty</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-[#12356B] mb-1" />
+                  <span className="text-xs font-extrabold text-slate-800">Updated Material</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                  <MonitorPlay className="w-5 h-5 text-[#12356B] mb-1" />
+                  <span className="text-xs font-extrabold text-slate-800">Online & Offline</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center">
+                  <Users className="w-5 h-5 text-[#12356B] mb-1" />
+                  <span className="text-xs font-extrabold text-slate-800">Personal Guidance</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------
+            TAB 3: COACHING PROGRAMS HEADERS
+        ---------------------------------------------------- */}
+        {activeTab === 'programs' && (
+          <div className="space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-black text-[#0B1E3D]">3 Coaching Programs Section Headers</h2>
+                <p className="text-xs text-slate-500">
+                  Configure section titles and subtitles for Banker's Path, Competitive Exams, and Entrance Exams.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/admin/courses"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-[#1769D2] hover:bg-blue-100 text-[11px] font-bold border border-blue-200"
+                >
+                  Manage Courses <ExternalLink className="w-3 h-3" />
+                </Link>
+                <Link
+                  to="/admin/entrance-exams"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 text-[11px] font-bold border border-purple-200"
+                >
+                  Entrance Exams <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Program 1: Banker's Path */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-teal-50/50 border border-teal-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-teal-800 tracking-wider">
+                    Program 01: Banker's Path Header
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">
+                    Live on Homepage
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Title</label>
                     <input
                       type="text"
-                      value={stat.value}
-                      onChange={(e) => {
-                        const updated = [...settings.aboutSection.stats];
-                        updated[idx].value = e.target.value;
+                      value={settings.bankersPathSection?.title || "Banker's Path"}
+                      onChange={(e) =>
                         setSettings({
                           ...settings,
-                          aboutSection: { ...settings.aboutSection, stats: updated },
-                        });
-                      }}
-                      placeholder="e.g. 15,000+"
-                      className="w-full px-2 py-1 rounded border border-slate-200 bg-white font-extrabold text-sm text-[#12356B]"
+                          bankersPathSection: {
+                            ...settings.bankersPathSection,
+                            title: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Banker's Path"
+                      className="w-full px-3 py-2 rounded-xl border border-teal-200 bg-white font-bold"
                     />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Subtitle</label>
                     <input
                       type="text"
-                      value={stat.label}
-                      onChange={(e) => {
-                        const updated = [...settings.aboutSection.stats];
-                        updated[idx].label = e.target.value;
+                      value={settings.bankersPathSection?.subtitle || 'Banking • Insurance • Finance'}
+                      onChange={(e) =>
                         setSettings({
                           ...settings,
-                          aboutSection: { ...settings.aboutSection, stats: updated },
-                        });
-                      }}
-                      placeholder="Label"
-                      className="w-full px-2 py-1 rounded border border-slate-200 bg-white text-[11px]"
+                          bankersPathSection: {
+                            ...settings.bankersPathSection,
+                            subtitle: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Banking • Insurance • Finance"
+                      className="w-full px-3 py-2 rounded-xl border border-teal-200 bg-white font-medium"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Program 2: Competitive Exams */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-purple-50/50 border border-purple-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-purple-800 tracking-wider">
+                    Program 02: Competitive Exams Header
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                    Live on Homepage
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                    <input
+                      type="text"
+                      value={settings.competitiveExamsSection?.title || 'Competitive Exams'}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          competitiveExamsSection: {
+                            ...settings.competitiveExamsSection,
+                            title: e.target.value,
+                          },
+                          competitiveSection: {
+                            ...settings.competitiveSection,
+                            title: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Competitive Exams"
+                      className="w-full px-3 py-2 rounded-xl border border-purple-200 bg-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Subtitle</label>
+                    <input
+                      type="text"
+                      value={
+                        settings.competitiveExamsSection?.subtitle ||
+                        'Government Jobs • Banking • Railways • Defence & More'
+                      }
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          competitiveExamsSection: {
+                            ...settings.competitiveExamsSection,
+                            subtitle: e.target.value,
+                          },
+                          competitiveSection: {
+                            ...settings.competitiveSection,
+                            subtitle: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Government Jobs • Banking • Railways • Defence & More"
+                      className="w-full px-3 py-2 rounded-xl border border-purple-200 bg-white font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Program 3: Entrance Exams */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-emerald-800 tracking-wider">
+                    Program 03: Entrance Exams Header
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                    Live on Homepage
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                    <input
+                      type="text"
+                      value={settings.entranceExamsSection?.title || 'Entrance Exams'}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          entranceExamsSection: {
+                            ...settings.entranceExamsSection,
+                            title: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Entrance Exams"
+                      className="w-full px-3 py-2 rounded-xl border border-emerald-200 bg-white font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Section Subtitle</label>
+                    <input
+                      type="text"
+                      value={
+                        settings.entranceExamsSection?.subtitle ||
+                        'Engineering • Medical • Central Universities & State CETs'
+                      }
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          entranceExamsSection: {
+                            ...settings.entranceExamsSection,
+                            subtitle: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Engineering • Medical • Central Universities & State CETs"
+                      className="w-full px-3 py-2 rounded-xl border border-emerald-200 bg-white font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------
+            TAB 4: ACTION CARDS & LEARNING PLAN
+        ---------------------------------------------------- */}
+        {activeTab === 'actionHubs' && (
+          <div className="space-y-6">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-lg font-black text-[#0B1E3D]">Action Cards & Learning Plan</h2>
+              <p className="text-xs text-slate-500">
+                Manage the 4 action hub cards and the structured learning plan displayed on the homepage.
+              </p>
+            </div>
+
+            {/* 4 Action Cards List */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                4 Action Cards (2x2 Grid)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {settings.actionCards?.map((card, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase text-[#12356B]">CARD #{idx + 1}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="w-3.5 h-3.5 rounded-full inline-block border border-black/10"
+                          style={{ backgroundColor: card.bgColor || '#12356B' }}
+                        ></span>
+                        <input
+                          type="text"
+                          value={card.bgColor || '#12356B'}
+                          onChange={(e) => {
+                            const updated = [...settings.actionCards];
+                            updated[idx] = { ...updated[idx], bgColor: e.target.value };
+                            setSettings({ ...settings, actionCards: updated });
+                          }}
+                          className="w-20 px-1.5 py-0.5 rounded text-[10px] font-mono border border-slate-200 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-0.5">Card Title</label>
+                        <input
+                          type="text"
+                          value={card.title || ''}
+                          onChange={(e) => {
+                            const updated = [...settings.actionCards];
+                            updated[idx] = { ...updated[idx], title: e.target.value };
+                            setSettings({ ...settings, actionCards: updated });
+                          }}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-0.5">Link Route</label>
+                        <input
+                          type="text"
+                          value={card.path || card.link || ''}
+                          onChange={(e) => {
+                            const updated = [...settings.actionCards];
+                            updated[idx] = {
+                              ...updated[idx],
+                              path: e.target.value,
+                              link: e.target.value,
+                            };
+                            setSettings({ ...settings, actionCards: updated });
+                          }}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-mono text-[11px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-0.5">Subtitle / Helper</label>
+                      <input
+                        type="text"
+                        value={card.subtitle || ''}
+                        onChange={(e) => {
+                          const updated = [...settings.actionCards];
+                          updated[idx] = { ...updated[idx], subtitle: e.target.value };
+                          setSettings({ ...settings, actionCards: updated });
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* 6-Step Roadmap */}
-            <div className="space-y-3 pt-3">
-              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                6-Step Preparation Roadmap
+            {/* "Learn with a Clear Plan" Section Header */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/50 border border-blue-200/80 space-y-3 pt-3">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                "Learn with a Clear Plan" Header & Badge
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                {settings.roadmapSection?.steps?.map((step, idx) => (
-                  <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span className="text-[10px] font-black text-[#1769D2]">STEP 0{idx + 1}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Badge Text</label>
+                  <input
+                    type="text"
+                    value={settings.clearPlanSection?.badge || 'PREPARE WITH STRUCTURED METHODOLOGY'}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        clearPlanSection: {
+                          ...settings.clearPlanSection,
+                          badge: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white font-bold text-emerald-700"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Section Title</label>
+                  <input
+                    type="text"
+                    value={settings.clearPlanSection?.title || 'Learn with a Clear Plan'}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        clearPlanSection: {
+                          ...settings.clearPlanSection,
+                          title: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white font-bold"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">Section Description</label>
+                  <input
+                    type="text"
+                    value={
+                      settings.clearPlanSection?.description ||
+                      'Follow our proven, step-by-step methodology to crack your exams with confidence.'
+                    }
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        clearPlanSection: {
+                          ...settings.clearPlanSection,
+                          description: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3-Step Roadmap */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                3-Step Preparation Roadmap
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                {settings.roadmapSection?.steps?.map((stepItem, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-[#1769D2] font-black text-[11px] flex items-center justify-center">
+                      {stepItem.step || `0${idx + 1}`}
+                    </span>
                     <input
                       type="text"
-                      value={step.title}
+                      value={stepItem.title || ''}
                       onChange={(e) => {
                         const updated = [...settings.roadmapSection.steps];
-                        updated[idx].title = e.target.value;
+                        updated[idx] = { ...updated[idx], title: e.target.value };
                         setSettings({
                           ...settings,
                           roadmapSection: { ...settings.roadmapSection, steps: updated },
                         });
                       }}
-                      className="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white font-bold"
+                      placeholder="Step Title"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold"
                     />
                     <textarea
                       rows={2}
-                      value={step.description}
+                      value={stepItem.desc || ''}
                       onChange={(e) => {
                         const updated = [...settings.roadmapSection.steps];
-                        updated[idx].description = e.target.value;
+                        updated[idx] = { ...updated[idx], desc: e.target.value };
                         setSettings({
                           ...settings,
                           roadmapSection: { ...settings.roadmapSection, steps: updated },
                         });
                       }}
-                      className="w-full px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[11px]"
+                      placeholder="Step Description"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px]"
                     />
                   </div>
                 ))}
@@ -883,13 +1062,387 @@ export const AdminSettingsPage = () => {
           </div>
         )}
 
-        {/* TAB 7: TESTIMONIALS */}
+        {/* ----------------------------------------------------
+            TAB 5: CONTACT & SOCIAL MEDIA LINKS
+        ---------------------------------------------------- */}
+        {activeTab === 'contact' && (
+          <div className="space-y-6">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-lg font-black text-[#0B1E3D]">Contact Information & Social Links</h2>
+              <p className="text-xs text-slate-500">
+                Manage official support telephone, emails, office address, and social platform URLs.
+              </p>
+            </div>
+
+            {/* Contact Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Support Phone</label>
+                <input
+                  type="text"
+                  value={settings.contactInfo?.phone || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      contactInfo: { ...settings.contactInfo, phone: e.target.value },
+                    })
+                  }
+                  placeholder="+91 98765 43210"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">WhatsApp Hotline</label>
+                <input
+                  type="text"
+                  value={settings.contactInfo?.whatsapp || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      contactInfo: { ...settings.contactInfo, whatsapp: e.target.value },
+                    })
+                  }
+                  placeholder="+91 98765 43210"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Official Email</label>
+                <input
+                  type="email"
+                  value={settings.contactInfo?.email || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      contactInfo: { ...settings.contactInfo, email: e.target.value },
+                    })
+                  }
+                  placeholder="admissions@ranviinstitutions.com"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Working / Counseling Hours</label>
+                <input
+                  type="text"
+                  value={settings.contactInfo?.workingHours || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      contactInfo: { ...settings.contactInfo, workingHours: e.target.value },
+                    })
+                  }
+                  placeholder="Monday - Saturday: 8:00 AM - 8:00 PM IST"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Campus / Branch Address</label>
+                <input
+                  type="text"
+                  value={settings.contactInfo?.address || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      contactInfo: { ...settings.contactInfo, address: e.target.value },
+                    })
+                  }
+                  placeholder="Ranvi Knowledge Tower, MG Road Coaching Hub, Vijayawada, Andhra Pradesh"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+            </div>
+
+            {/* Social Media Links */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                Social Media Channels & Direct Links
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">WhatsApp Direct Link / URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.whatsapp || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, whatsapp: e.target.value },
+                      })
+                    }
+                    placeholder="https://wa.me/919876543210"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">YouTube Channel URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.youtube || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, youtube: e.target.value },
+                      })
+                    }
+                    placeholder="https://youtube.com/@ranviinstitutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Instagram Profile URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.instagram || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, instagram: e.target.value },
+                      })
+                    }
+                    placeholder="https://instagram.com/ranviinstitutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Facebook Page URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.facebook || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, facebook: e.target.value },
+                      })
+                    }
+                    placeholder="https://facebook.com/ranviinstitutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">LinkedIn Profile URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.linkedin || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, linkedin: e.target.value },
+                      })
+                    }
+                    placeholder="https://linkedin.com/company/ranvi-institutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Telegram Community URL</label>
+                  <input
+                    type="text"
+                    value={settings.socialLinks?.telegram || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        socialLinks: { ...settings.socialLinks, telegram: e.target.value },
+                      })
+                    }
+                    placeholder="https://t.me/ranvi_institutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Demo Policy & Quotas */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                Student Free Demo Policy & Quotas
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Free Demo Recorded Lessons Allowed
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.demoPolicy?.freeRecordedLessonsLimit || 2}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        demoPolicy: {
+                          ...settings.demoPolicy,
+                          freeRecordedLessonsLimit: Number(e.target.value),
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Free Demo Mock Tests Allowed
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.demoPolicy?.freeMockTestsLimit || 1}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        demoPolicy: {
+                          ...settings.demoPolicy,
+                          freeMockTestsLimit: Number(e.target.value),
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------
+            TAB 6: ABOUT INSTITUTE & STATS
+        ---------------------------------------------------- */}
+        {activeTab === 'about' && (
+          <div className="space-y-6">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-lg font-black text-[#0B1E3D]">About Institute & Platform Metrics</h2>
+              <p className="text-xs text-slate-500">
+                Configure platform achievements, mission, vision, and legacy overview copy.
+              </p>
+            </div>
+
+            {/* 3 Impact Stats */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                3 Key Platform Achievement Counters
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                {settings.aboutSection?.stats?.map((stat, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <span className="text-[10px] font-black text-slate-400">COUNTER #{idx + 1}</span>
+                    <input
+                      type="text"
+                      value={stat.value}
+                      onChange={(e) => {
+                        const updated = [...settings.aboutSection.stats];
+                        updated[idx] = { ...updated[idx], value: e.target.value };
+                        setSettings({
+                          ...settings,
+                          aboutSection: { ...settings.aboutSection, stats: updated },
+                        });
+                      }}
+                      placeholder="25,000+"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-black text-[#12356B] text-base"
+                    />
+                    <input
+                      type="text"
+                      value={stat.label}
+                      onChange={(e) => {
+                        const updated = [...settings.aboutSection.stats];
+                        updated[idx] = { ...updated[idx], label: e.target.value };
+                        setSettings({
+                          ...settings,
+                          aboutSection: { ...settings.aboutSection, stats: updated },
+                        });
+                      }}
+                      placeholder="Students Trained"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mission & Vision */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Our Mission</label>
+                <textarea
+                  rows={3}
+                  value={settings.aboutSection?.missionText || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      aboutSection: { ...settings.aboutSection, missionText: e.target.value },
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Our Vision</label>
+                <textarea
+                  rows={3}
+                  value={settings.aboutSection?.visionText || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      aboutSection: { ...settings.aboutSection, visionText: e.target.value },
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Legacy Main Title</label>
+                <input
+                  type="text"
+                  value={settings.aboutSection?.legacyTitle || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      aboutSection: { ...settings.aboutSection, legacyTitle: e.target.value },
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Legacy Primary Text</label>
+                <textarea
+                  rows={2}
+                  value={settings.aboutSection?.legacyText1 || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      aboutSection: { ...settings.aboutSection, legacyText1: e.target.value },
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------
+            TAB 7: STUDENT REVIEWS & TESTIMONIALS
+        ---------------------------------------------------- */}
         {activeTab === 'testimonials' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-lg font-black text-[#0B1E3D]">Student Success Stories</h2>
-                <p className="text-xs text-slate-500">Manage real bank officer and aspirant reviews with photos and ranks.</p>
+                <p className="text-xs text-slate-500">
+                  Manage authentic bank officer and aspirant reviews with photos and ranks.
+                </p>
               </div>
               <button
                 type="button"
@@ -958,7 +1511,7 @@ export const AdminSettingsPage = () => {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-0.5">Student Quote / Feedback</label>
+                    <label className="block font-bold text-slate-700 mb-0.5">Student Feedback Quote</label>
                     <textarea
                       rows={2}
                       value={t.quote}
@@ -990,13 +1543,17 @@ export const AdminSettingsPage = () => {
           </div>
         )}
 
-        {/* TAB 8: FAQS */}
+        {/* ----------------------------------------------------
+            TAB 8: FAQS & HELP
+        ---------------------------------------------------- */}
         {activeTab === 'faqs' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-lg font-black text-[#0B1E3D]">Frequently Asked Questions</h2>
-                <p className="text-xs text-slate-500">Manage FAQs displayed across homepage and the dedicated FAQ page.</p>
+                <p className="text-xs text-slate-500">
+                  Manage student FAQs shown across course details and help sections.
+                </p>
               </div>
               <button
                 type="button"
@@ -1049,148 +1606,17 @@ export const AdminSettingsPage = () => {
             </div>
           </div>
         )}
-
-        {/* TAB 9: CONTACT & POLICIES */}
-        {activeTab === 'contact' && (
-          <div className="space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-lg font-black text-[#0B1E3D]">Contact Information & Free Demo Quota</h2>
-              <p className="text-xs text-slate-500">Phone numbers, emails, physical branch address, and student demo allowances.</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Support Phone</label>
-                <input
-                  type="text"
-                  value={settings.contactInfo?.phone || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      contactInfo: { ...settings.contactInfo, phone: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">WhatsApp Hotline</label>
-                <input
-                  type="text"
-                  value={settings.contactInfo?.whatsapp || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      contactInfo: { ...settings.contactInfo, whatsapp: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Official Email</label>
-                <input
-                  type="email"
-                  value={settings.contactInfo?.email || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      contactInfo: { ...settings.contactInfo, email: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Working Hours</label>
-                <input
-                  type="text"
-                  value={settings.contactInfo?.workingHours || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      contactInfo: { ...settings.contactInfo, workingHours: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block font-bold text-slate-700 mb-1">Office / Branch Address</label>
-                <input
-                  type="text"
-                  value={settings.contactInfo?.address || ''}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      contactInfo: { ...settings.contactInfo, address: e.target.value },
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
-
-            {/* Demo Policy */}
-            <div className="pt-4 border-t border-slate-100">
-              <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-3">
-                Student Free Demo Policy & Quotas
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Free Demo Recorded Lessons Allowed</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={settings.demoPolicy?.freeRecordedLessonsLimit || 2}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        demoPolicy: {
-                          ...settings.demoPolicy,
-                          freeRecordedLessonsLimit: Number(e.target.value),
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Free Demo Mock Tests Allowed</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={settings.demoPolicy?.freeMockTestsLimit || 1}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        demoPolicy: {
-                          ...settings.demoPolicy,
-                          freeMockTestsLimit: Number(e.target.value),
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Save Floating/Bottom Bar */}
+      {/* ========================================================
+          4. BOTTOM STICKY SAVE BAR
+      ======================================================== */}
       <div className="flex justify-end">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={saving}
-          className="inline-flex items-center gap-2 bg-[#12356B] hover:bg-[#0e2a56] text-white text-sm font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-[#12356B] hover:bg-[#0e2a56] active:scale-95 text-white text-sm font-extrabold px-8 py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-50"
         >
           <Save className="w-4 h-4" /> {saving ? 'Publishing Changes...' : 'Save & Synchronize All Settings'}
         </button>

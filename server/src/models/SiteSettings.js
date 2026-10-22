@@ -92,8 +92,8 @@ const SiteSettingsSchema = new mongoose.Schema({
     }],
   },
   competitiveExamsSection: {
-    title: { type: String, default: 'All Competitive Exams Coaching' },
-    subtitle: { type: String, default: 'Government Jobs • Banking • Railways • Insurance • Defence & More' },
+    title: { type: String, default: 'Competitive Exams' },
+    subtitle: { type: String, default: 'Government Jobs • Banking • Railways • Defence & More' },
     buttonText: { type: String, default: 'View All' },
     buttonLink: { type: String, default: '/competitive-exams' },
     tiles: [{
@@ -102,11 +102,41 @@ const SiteSettingsSchema = new mongoose.Schema({
       bgGradient: { type: String, default: 'from-[#0284C7] to-[#0369A1]' },
     }],
   },
+  entranceExamsSection: {
+    title: { type: String, default: 'Entrance Exams' },
+    subtitle: { type: String, default: 'Engineering • Medical • Central Universities & State CETs' },
+    buttonText: { type: String, default: 'View All' },
+    buttonLink: { type: String, default: '/entrance-exams' },
+  },
+  clearPlanSection: {
+    badge: { type: String, default: 'PREPARE WITH STRUCTURED METHODOLOGY' },
+    title: { type: String, default: 'Learn with a Clear Plan' },
+    description: { type: String, default: 'Focus on what matters most with our structured approach that turns aspirants into achievers.' },
+    features: [{
+      title: { type: String, required: true },
+      desc: { type: String, required: true },
+      icon: { type: String, default: 'FileText' },
+    }],
+  },
+  roadmapSection: {
+    title: { type: String, default: 'Roadmap' },
+    steps: [{
+      step: { type: String, default: '01' },
+      title: { type: String, default: 'Enroll in your course' },
+      desc: { type: String, default: 'Get instant access to study material & video lectures.' },
+    }],
+  },
+  demoPolicy: {
+    freeRecordedLessonsLimit: { type: Number, default: 2 },
+    freeMockTestsLimit: { type: Number, default: 1 },
+  },
   actionCards: [{
-    title: { type: String, required: true },
-    subtitle: { type: String, required: true },
-    link: { type: String, required: true },
-    colorType: { type: String, default: 'blue' }, // blue, green, pink, amber
+    title: { type: String, default: '' },
+    subtitle: { type: String, default: '' },
+    path: { type: String, default: '' },
+    link: { type: String, default: '' },
+    bgColor: { type: String, default: '#0080FF' },
+    colorType: { type: String, default: 'blue' },
     icon: { type: String, default: 'MonitorPlay' },
   }],
   zoomSection: {
@@ -203,6 +233,7 @@ const SiteSettingsSchema = new mongoose.Schema({
     youtube: { type: String, default: 'https://youtube.com' },
     telegram: { type: String, default: 'https://telegram.org' },
     linkedin: { type: String, default: 'https://linkedin.com' },
+    whatsapp: { type: String, default: 'https://wa.me/919876543210' },
   },
   finalCtaBanner: {
     title: { type: String, default: 'Ready to Achieve Your Next Career Milestone?' },

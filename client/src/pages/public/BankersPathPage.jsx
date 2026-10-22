@@ -176,32 +176,6 @@ export const BankersPathPage = () => {
             </div>
           </div>
         )}
-
-        {/* Comprehensive 8-Certifications Overview Guide */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
-          <div className="mb-6">
-            <span className="text-xs font-black uppercase text-[#1769D2] tracking-wider bg-[#EAF3FF] px-3 py-1 rounded-full">
-              IIBF & SEBI Recognized
-            </span>
-            <h3 className="text-2xl font-black text-[#12356B] font-heading mt-2">
-              Complete Banker's Path Curriculum Guide
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {certificationsList.map((cert) => (
-              <div key={cert.name} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`w-3 h-3 rounded-full ${cert.color}`}></span>
-                    <span className="text-base font-black text-[#12356B]">{cert.name}</span>
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{cert.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

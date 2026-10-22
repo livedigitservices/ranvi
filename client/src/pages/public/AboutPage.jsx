@@ -1,13 +1,22 @@
 import React from 'react';
 import { PageBanner } from '../../components/common/PageBanner';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 import { Award, Target, Eye, ShieldCheck, CheckCircle2, Users, BookOpen, Sparkles, Building2, TrendingUp, Landmark, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AboutPage = () => {
+  const { settings } = useSiteSettings();
+  const about = settings?.aboutSection || {};
+  const stats = about.stats && about.stats.length === 3 ? about.stats : [
+    { label: 'Students Trained', value: '25,000+' },
+    { label: '1st Attempt Clear', value: '89.4%' },
+    { label: 'Ex-Banker Faculty', value: '45+' },
+  ];
+
   return (
     <div className="space-y-16 pb-20 bg-[#F8FAFC]">
       <PageBanner
-        title="About Ranvi Institutions"
+        title={`About ${settings?.institutionName || 'Ranvi Institutions'}`}
         subtitle="Dedicated to transforming careers in the banking, financial services, and government recruitment sectors through excellence in coaching and state-of-the-art educational technology."
         breadcrumbs={[{ label: 'About Us' }]}
       />
@@ -20,28 +29,27 @@ export const AboutPage = () => {
               Our Legacy of Excellence
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-[#0B1E3D] font-heading leading-tight">
-              Shaping India's Next Generation of Banking Leaders & Public Servants
+              {about.legacyTitle || "Shaping India's Next Generation of Banking Leaders & Public Servants"}
             </h2>
             <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-              Founded by veteran bankers and educationists, <strong>Ranvi Institutions</strong> stands at the forefront of career development for banking employees and competitive recruitment aspirants.
+              {about.legacyText1 || (
+                <>Founded by veteran bankers and educationists, <strong>{settings?.institutionName || 'Ranvi Institutions'}</strong> stands at the forefront of career development for banking employees and competitive recruitment aspirants.</>
+              )}
             </p>
             <p className="text-sm text-slate-600 leading-relaxed">
-              We specialize in IIBF-accredited certifications (JAIIB, CAIIB, DBF, DTM) and premier government examinations (IBPS PO/Clerk, SBI PO, RBI Grade B, SSC CGL, Railways). Our pedagogical model pairs conceptual mastery with rigorous computer-based exam simulations.
+              {about.legacyText2 ||
+                'We specialize in IIBF-accredited certifications (JAIIB, CAIIB, DBF, DTM) and premier government examinations (IBPS PO/Clerk, SBI PO, RBI Grade B, SSC CGL, Railways). Our pedagogical model pairs conceptual mastery with rigorous computer-based exam simulations.'}
             </p>
 
             <div className="grid grid-cols-3 gap-4 pt-3 text-center">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-2xl sm:text-3xl font-black text-[#0B1E3D] block">25,000+</span>
-                <span className="text-[11px] text-slate-500 font-bold uppercase">Students Trained</span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-2xl sm:text-3xl font-black text-[#1769D2] block">89.4%</span>
-                <span className="text-[11px] text-slate-500 font-bold uppercase">1st Attempt Clear</span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                <span className="text-2xl sm:text-3xl font-black text-amber-600 block">45+</span>
-                <span className="text-[11px] text-slate-500 font-bold uppercase">Ex-Banker Faculty</span>
-              </div>
+              {stats.map((stat, idx) => (
+                <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                  <span className={`text-2xl sm:text-3xl font-black block ${idx === 1 ? 'text-[#1769D2]' : idx === 2 ? 'text-amber-600' : 'text-[#0B1E3D]'}`}>
+                    {stat.value}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-bold uppercase">{stat.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -72,7 +80,8 @@ export const AboutPage = () => {
             </div>
             <h3 className="text-2xl font-black text-[#0B1E3D] font-heading">Our Mission</h3>
             <p className="text-sm text-slate-700 leading-relaxed">
-              To deliver accessible, result-driven, and ethically grounded coaching that empowers every banking professional and competitive exam aspirant to achieve their highest career milestones with confidence and conceptual clarity.
+              {about.missionText ||
+                'To deliver accessible, result-driven, and ethically grounded coaching that empowers every banking professional and competitive exam aspirant to achieve their highest career milestones with confidence and conceptual clarity.'}
             </p>
           </div>
 
@@ -82,7 +91,8 @@ export const AboutPage = () => {
             </div>
             <h3 className="text-2xl font-black text-[#0B1E3D] font-heading">Our Vision</h3>
             <p className="text-sm text-slate-700 leading-relaxed">
-              To be recognized as India's most trusted educational institution for professional banking certifications and government recruitment, setting the standard for quality pedagogy and student success rates.
+              {about.visionText ||
+                'To be recognized as India’s most trusted educational institution for professional banking certifications and government recruitment, setting the standard for quality pedagogy and student success rates.'}
             </p>
           </div>
         </div>

@@ -13,6 +13,7 @@ const Payment = require('../src/models/Payment');
 const Entitlement = require('../src/models/Entitlement');
 const Enquiry = require('../src/models/Enquiry');
 const EntranceExam = require('../src/models/EntranceExam');
+const SiteSettings = require('../src/models/SiteSettings');
 const { isValidZoomUrl } = require('../src/utils/zoomValidator');
 const { verifySignature } = require('../src/config/razorpay');
 const seedAll = require('./seed');
@@ -264,6 +265,54 @@ const runTests = async () => {
     assert(
       apEapcetCourse !== null && apEapcetCourse.tileColor === '#B94715',
       'AP EAPCET course has custom tile color #B94715'
+    );
+
+    // ==========================================
+    // 12. SITE SETTINGS & HERO BANNER INTEGRATION
+    // ==========================================
+    const siteSettings = await SiteSettings.findOne({ key: 'global_settings' });
+    assert(siteSettings !== null, 'Global site settings document exists in database');
+    assert(
+      siteSettings?.topAnnouncement?.isActive === true && typeof siteSettings?.topAnnouncement?.message === 'string',
+      'Top announcement bar configuration is present and active'
+    );
+    assert(
+      siteSettings?.bankersPathSection?.title === "Banker's Path",
+      "Banker's Path section title is correctly configured in settings"
+    );
+    assert(
+      siteSettings?.competitiveExamsSection?.title === 'Competitive Exams',
+      'Competitive Exams section title is correctly configured in settings'
+    );
+    assert(
+      siteSettings?.entranceExamsSection?.title === 'Entrance Exams',
+      'Entrance Exams section title is correctly configured in settings'
+    );
+    assert(
+      typeof siteSettings?.contactInfo?.phone === 'string' && siteSettings?.contactInfo?.phone.length > 5,
+      'Contact phone information is valid and present in site settings'
+    );
+    assert(
+      siteSettings?.socialLinks?.whatsapp?.includes('wa.me') || siteSettings?.socialLinks?.youtube?.includes('youtube'),
+      'Social media links are present in site settings'
+    );
+
+    // Test Admin Settings Update & Synchronization
+    const testUpdatedAnnouncement = 'Test Special Batch Starts Tomorrow!';
+    const updatedSettings = await SiteSettings.findOneAndUpdate(
+      { key: 'global_settings' },
+      { $set: { 'topAnnouncement.message': testUpdatedAnnouncement } },
+      { new: true }
+    );
+    assert(
+      updatedSettings.topAnnouncement.message === testUpdatedAnnouncement,
+      'Admin can update top announcement message in site settings'
+    );
+
+    // Revert test update back
+    await SiteSettings.findOneAndUpdate(
+      { key: 'global_settings' },
+      { $set: { 'topAnnouncement.message': 'New Batches for JAIIB, CAIIB, IBPS PO & SBI PO starting this week!' } }
     );
 
     console.log('\n🧪 =======================================================');

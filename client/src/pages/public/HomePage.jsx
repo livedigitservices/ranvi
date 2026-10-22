@@ -10,7 +10,6 @@ import {
   MonitorPlay,
   ArrowRight,
   ChevronRight,
-  ChevronLeft,
   ChevronDown,
   ChevronUp,
   RotateCcw,
@@ -170,9 +169,21 @@ export const HomePage = () => {
     entrance: false,
   });
 
-  // Hero Slider State
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isSliderHovered, setIsSliderHovered] = useState(false);
+  // Hero Static Headline & Tagline from Settings
+  const heroHeadlinePrefix = settings?.heroBanner?.headlinePrefix || 'Build Your';
+  const heroHeadlineHighlight =
+    settings?.heroBanner?.headlineHighlight ||
+    settings?.heroBanner?.highlightWord ||
+    'Banking & Government';
+  const heroHeadlineSuffix =
+    settings?.heroBanner?.headlineSuffix !== undefined
+      ? settings?.heroBanner?.headlineSuffix
+      : 'Career with Us';
+  const bannerStripTagline =
+    settings?.bannerStripText ||
+    settings?.bannerStrip?.tagline ||
+    settings?.supportingMessage ||
+    'Learn • Excel • Achieve';
 
   // Fetch available states with silent fallback
   useEffect(() => {
@@ -229,51 +240,7 @@ export const HomePage = () => {
   }, [selectedState]);
 
   // ----------------------------------------------------
-  // 2. HERO BANNER SLIDES CONFIGURATION (DYNAMIC SLIDING)
-  // ----------------------------------------------------
-  const defaultSlides = [
-    {
-      image: '/assets/hero-banner.png',
-      headlinePrefix: 'Build Your',
-      headlineHighlight: 'Banking & Government',
-      headlineSuffix: 'Career with Us',
-      tagline: 'Learn • Excel • Achieve',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop',
-      headlinePrefix: 'Crack Top',
-      headlineHighlight: 'Competitive Exams',
-      headlineSuffix: 'in 1st Attempt',
-      tagline: 'Practice • Master • Succeed',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=1400&auto=format&fit=crop',
-      headlinePrefix: 'Excel in Top',
-      headlineHighlight: 'Entrance Exams',
-      headlineSuffix: 'with Ranvi',
-      tagline: 'Aspire • Learn • Excel',
-    },
-  ];
-
-  const slides =
-    settings?.heroBanner?.slides && settings.heroBanner.slides.length > 0
-      ? settings.heroBanner.slides
-      : defaultSlides;
-
-  // Auto-advance slides every 5.5s, pause on hover
-  useEffect(() => {
-    if (isSliderHovered || slides.length <= 1) return;
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5500);
-    return () => clearInterval(timer);
-  }, [isSliderHovered, slides.length]);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-
-  // ----------------------------------------------------
-  // 3. COURSE CATEGORIZATION & UTILITIES
+  // 2. COURSE CATEGORIZATION & UTILITIES
   // ----------------------------------------------------
   const bankersCourses = courses.filter((c) => c.division === 'BANKERS_PATH');
   const competitiveCourses = courses.filter((c) => c.division === 'COMPETITIVE_EXAMS');
@@ -345,10 +312,8 @@ export const HomePage = () => {
     return parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
   };
 
-  const activeSlide = slides[currentSlide] || slides[0];
-
-  // 4 Action Hub Cards Config
-  const actionCards = [
+  // 4 Action Hub Cards Config (Dynamic from Site Settings if configured)
+  const defaultActionCards = [
     {
       title: 'Enquiry & Demo',
       subtitle: 'Join our free demo classes',
@@ -379,8 +344,20 @@ export const HomePage = () => {
     },
   ];
 
-  // 4 Learn with a Clear Plan Feature Cards Config
-  const planFeatures = [
+  const actionCards =
+    Array.isArray(settings?.actionCards) && settings.actionCards.length === 4
+      ? settings.actionCards.map((card, idx) => ({
+          ...defaultActionCards[idx],
+          title: card.title || defaultActionCards[idx].title,
+          subtitle: card.subtitle || defaultActionCards[idx].subtitle,
+          path: card.path || card.link || defaultActionCards[idx].path,
+          bgColor: card.bgColor || defaultActionCards[idx].bgColor,
+          icon: defaultActionCards[idx].icon,
+        }))
+      : defaultActionCards;
+
+  // 4 Learn with a Clear Plan Feature Cards Config (Dynamic from Settings)
+  const defaultPlanFeatures = [
     {
       title: 'Daily Planner',
       desc: 'Structured daily schedule to cover complete syllabus on time.',
@@ -419,8 +396,18 @@ export const HomePage = () => {
     },
   ];
 
-  // 3 Roadmap Steps Config
-  const roadmapSteps = [
+  const planFeatures =
+    Array.isArray(settings?.clearPlanSection?.features) &&
+    settings.clearPlanSection.features.length === 4
+      ? settings.clearPlanSection.features.map((f, idx) => ({
+          ...defaultPlanFeatures[idx],
+          title: f.title || defaultPlanFeatures[idx].title,
+          desc: f.desc || defaultPlanFeatures[idx].desc,
+        }))
+      : defaultPlanFeatures;
+
+  // 3 Roadmap Steps Config (Dynamic from Settings)
+  const defaultRoadmapSteps = [
     {
       step: '01',
       title: 'Enroll in your course',
@@ -438,40 +425,41 @@ export const HomePage = () => {
     },
   ];
 
+  const roadmapSteps =
+    Array.isArray(settings?.roadmapSection?.steps) &&
+    settings.roadmapSection.steps.length === 3
+      ? settings.roadmapSection.steps.map((s, idx) => ({
+          ...defaultRoadmapSteps[idx],
+          step: s.step || defaultRoadmapSteps[idx].step,
+          title: s.title || defaultRoadmapSteps[idx].title,
+          desc: s.desc || defaultRoadmapSteps[idx].desc,
+        }))
+      : defaultRoadmapSteps;
+
   return (
     <div className="space-y-6 sm:space-y-8 pb-16 bg-[#F8FAFC] overflow-x-hidden">
       {/* ========================================================
-          HERO BANNER: DYNAMIC SLIDING CAROUSEL (EXCEPT HERO)
+          HERO BANNER: STATIC DESIGN MATCHING REFERENCE (FIXED IMAGE)
       ======================================================== */}
-      <section
-        className="relative w-full overflow-hidden bg-[#081A36] text-white shadow-2xl"
-        onMouseEnter={() => setIsSliderHovered(true)}
-        onMouseLeave={() => setIsSliderHovered(false)}
-      >
+      <section className="relative w-full overflow-hidden bg-[#081A36] text-white shadow-2xl">
         <div className="absolute inset-0 z-0">
-          {slides.map((s, idx) => (
-            <div
-              key={idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              <img
-                src={s.image || '/assets/hero-banner.png'}
-                alt={`Hero Slide ${idx + 1}`}
-                className="w-full h-full object-cover object-right scale-105 transition-transform duration-7000 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#081A36] via-[#081A36]/95 via-40% to-transparent sm:via-[#081A36]/90 sm:via-48% lg:via-[#081A36]/80 lg:via-55%"></div>
-            </div>
-          ))}
+          <img
+            src="/assets/hero-banner.png"
+            alt="Ranvi Institutions Hero"
+            onError={(e) => {
+              e.currentTarget.src = '/hero-banner.png';
+            }}
+            className="w-full h-full object-cover object-right scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#081A36] via-[#081A36]/95 via-40% to-transparent sm:via-[#081A36]/90 sm:via-48% lg:via-[#081A36]/80 lg:via-55%"></div>
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 pt-8 sm:pt-12 pb-10 sm:pb-14">
           <div className="max-w-[30vh] sm:max-w-xl text-left space-y-5">
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight leading-[1.15] text-white drop-shadow-md">
-              {activeSlide.headlinePrefix}{' '}
-              <span className="text-[#F4B942]">{activeSlide.headlineHighlight}</span>
-              {activeSlide.headlineSuffix ? ` ${activeSlide.headlineSuffix}` : ''}
+              {heroHeadlinePrefix}{' '}
+              <span className="text-[#F4B942]">{heroHeadlineHighlight}</span>
+              {heroHeadlineSuffix ? ` ${heroHeadlineSuffix}` : ''}
             </h1>
 
             <div className="grid grid-cols-4 gap-2 pt-1 text-center">
@@ -512,42 +500,9 @@ export const HomePage = () => {
           </div>
         </div>
 
-        {slides.length > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              aria-label="Previous Slide"
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20 hover:bg-black/60 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={nextSlide}
-              aria-label="Next Slide"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20 hover:bg-black/60 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <div className="absolute bottom-11 sm:bottom-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-              {slides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  aria-label={`Go to slide ${idx + 1}`}
-                  className={`transition-all duration-300 rounded-full ${
-                    idx === currentSlide
-                      ? 'w-6 h-2 bg-[#F4B942]'
-                      : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
         <div className="w-full bg-[#F4B942] py-2 px-4 shadow-md relative z-20 text-center">
           <span className="text-[#0B1E3D] font-black text-xs sm:text-sm tracking-widest uppercase font-heading">
-            {activeSlide.tagline || 'Learn • Excel • Achieve'}
+            {bannerStripTagline}
           </span>
         </div>
       </section>
@@ -626,8 +581,8 @@ export const HomePage = () => {
 
         {/* Card 1: Banker's Path */}
         <ProgramCard
-          title="Banker's Path"
-          subtitle="Banking • Insurance • Finance"
+          title={settings?.bankersPathSection?.title || "Banker's Path"}
+          subtitle={settings?.bankersPathSection?.subtitle || "Banking • Insurance • Finance"}
           courses={bankersCourses}
           defaultTiles={defaultBankersTiles}
           isExpanded={expandedSection.bankers}
@@ -643,8 +598,8 @@ export const HomePage = () => {
 
         {/* Card 2: Competitive Exams */}
         <ProgramCard
-          title="Competitive Exams"
-          subtitle="Government Jobs • Banking • Railways • Defence & More"
+          title={settings?.competitiveExamsSection?.title || settings?.competitiveSection?.title || "Competitive Exams"}
+          subtitle={settings?.competitiveExamsSection?.subtitle || settings?.competitiveSection?.subtitle || "Government Jobs • Banking • Railways • Defence & More"}
           courses={competitiveCourses}
           defaultTiles={defaultCompetitiveTiles}
           isExpanded={expandedSection.competitive}
@@ -660,8 +615,8 @@ export const HomePage = () => {
 
         {/* Card 3: Entrance Exams */}
         <ProgramCard
-          title="Entrance Exams"
-          subtitle="Engineering • Medical • Central Universities & State CETs"
+          title={settings?.entranceExamsSection?.title || "Entrance Exams"}
+          subtitle={settings?.entranceExamsSection?.subtitle || "Engineering • Medical • Central Universities & State CETs"}
           courses={entranceCourses}
           defaultTiles={defaultEntranceTiles}
           isExpanded={expandedSection.entrance}
@@ -722,13 +677,14 @@ export const HomePage = () => {
             <div>
               <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                PREPARE WITH STRUCTURED METHODOLOGY
+                {settings?.clearPlanSection?.badge || 'PREPARE WITH STRUCTURED METHODOLOGY'}
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight mt-0.5">
-                Learn with a Clear Plan
+                {settings?.clearPlanSection?.title || 'Learn with a Clear Plan'}
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed mt-1">
-                Follow our proven, step-by-step methodology to crack your exams with confidence.
+                {settings?.clearPlanSection?.description ||
+                  'Follow our proven, step-by-step methodology to crack your exams with confidence.'}
               </p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-[#0B2545] to-[#1976D2] text-[#F4B942] flex items-center justify-center shrink-0 shadow-md">

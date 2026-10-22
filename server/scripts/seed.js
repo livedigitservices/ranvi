@@ -1133,8 +1133,8 @@ const seedAll = async () => {
         ],
       },
       competitiveExamsSection: {
-        title: 'All Competitive Exams Coaching',
-        subtitle: 'Government Jobs • Banking • Railways • Insurance • Defence & More',
+        title: 'Competitive Exams',
+        subtitle: 'Government Jobs • Banking • Railways • Defence & More',
         buttonText: 'View All',
         buttonLink: '/competitive-exams',
         tiles: [
@@ -1151,12 +1151,41 @@ const seedAll = async () => {
           { name: 'OTHER EXAMS', path: '/competitive-exams', bgGradient: 'from-[#4D7C0F] to-[#3F6212]' },
         ],
       },
+      entranceExamsSection: {
+        title: 'Entrance Exams',
+        subtitle: 'Engineering • Medical • Central Universities & State CETs',
+        buttonText: 'View All',
+        buttonLink: '/entrance-exams',
+      },
       actionCards: [
-        { title: 'Classes', subtitle: 'Live & Recorded Learning', link: '/online-classes', colorType: 'blue', icon: 'MonitorPlay' },
-        { title: 'Exams', subtitle: 'Online Tests & Mock Tests', link: '/mock-tests', colorType: 'green', icon: 'ClipboardList' },
-        { title: 'Enquiry', subtitle: 'Have Questions? Get in Touch', link: '/enquiry', colorType: 'pink', icon: 'MessageSquare' },
-        { title: 'Enroll Now', subtitle: 'Start Your Learning Journey', link: '/bankers-path', colorType: 'amber', icon: 'UserCheck' },
+        { title: 'Enquiry & Demo', subtitle: 'Join our free demo classes', path: '/enquiry', link: '/enquiry', bgColor: '#0080FF' },
+        { title: 'Materials', subtitle: 'Get study notes', path: '/recorded-classes', link: '/recorded-classes', bgColor: '#FF8C00' },
+        { title: 'Classes', subtitle: 'Live & Recorded', path: '/online-classes', link: '/online-classes', bgColor: '#00C853' },
+        { title: 'Exams', subtitle: 'Mock tests & Online tests', path: '/mock-tests', link: '/mock-tests', bgColor: '#9B51E0' },
       ],
+      clearPlanSection: {
+        badge: 'PREPARE WITH STRUCTURED METHODOLOGY',
+        title: 'Learn with a Clear Plan',
+        description: 'Focus on what matters most with our structured approach that turns aspirants into achievers.',
+        features: [
+          { title: 'Daily Planner', desc: 'Structured daily schedule to cover complete syllabus on time.' },
+          { title: 'Classes', desc: 'Interactive live & high quality recorded video lectures.' },
+          { title: 'Practice Exams', desc: 'Chapter-wise quizzes and full-length online mock tests.' },
+          { title: 'Expert Guidance', desc: 'Doubt sessions and personal mentoring by retired bankers & rankers.' },
+        ],
+      },
+      roadmapSection: {
+        title: 'Roadmap',
+        steps: [
+          { step: '01', title: 'Enroll in your course', desc: 'Get instant access to study material & video lectures.' },
+          { step: '02', title: 'Learn & Practice', desc: 'Join daily live classes & take chapter-wise mock tests.' },
+          { step: '03', title: 'Crack Exam & Reach Goal', desc: 'Achieve top ranks with continuous guidance & analysis.' },
+        ],
+      },
+      demoPolicy: {
+        freeRecordedLessonsLimit: 2,
+        freeMockTestsLimit: 1,
+      },
       zoomSection: {
         badge: 'Live Interactive Zoom Batches',
         title: 'Learn Live with Senior Ex-Bankers & Master Faculty',

@@ -231,7 +231,10 @@ export const Footer = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {/* WhatsApp */}
               <a
-                href={`https://wa.me/${contact.phone?.replace(/[^0-9]/g, '') || '919876543210'}`}
+                href={
+                  settings?.socialLinks?.whatsapp ||
+                  `https://wa.me/${contact.phone?.replace(/[^0-9]/g, '') || '919876543210'}`
+                }
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Connect with us on WhatsApp"
@@ -245,7 +248,7 @@ export const Footer = () => {
 
               {/* YouTube */}
               <a
-                href="https://youtube.com"
+                href={settings?.socialLinks?.youtube || 'https://youtube.com'}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Watch Ranvi Institutions on YouTube"
@@ -259,7 +262,7 @@ export const Footer = () => {
 
               {/* Instagram */}
               <a
-                href="https://instagram.com"
+                href={settings?.socialLinks?.instagram || 'https://instagram.com'}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Follow Ranvi Institutions on Instagram"
@@ -273,7 +276,7 @@ export const Footer = () => {
 
               {/* Facebook */}
               <a
-                href="https://facebook.com"
+                href={settings?.socialLinks?.facebook || 'https://facebook.com'}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Like Ranvi Institutions on Facebook"
