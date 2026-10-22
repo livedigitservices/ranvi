@@ -7,6 +7,7 @@ const { authorize } = require('../middleware/authorize');
 // Public routes
 router.get('/', courseController.getCourses);
 router.get('/categories', courseController.getCategories);
+router.get('/states', courseController.getAvailableStates);
 router.get('/:slug', optionalAuth, courseController.getCourseBySlug);
 
 // Admin routes

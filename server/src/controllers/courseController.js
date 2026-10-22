@@ -6,11 +6,11 @@ const { sendSuccess, sendError } = require('../utils/responseHelper');
 // Public: Get all courses with filters and pagination
 const getCourses = async (req, res, next) => {
   try {
-    const { division, category, search, page = 1, limit = 12, mode, featured } = req.query;
-    const query = { isPublished: true };
+    const { division, category, search, page = 1, limit = 12, mode, featured, state } = req.query;
+    const conditions = [{ isPublished: true }];
 
     if (division) {
-      query.division = division.toUpperCase();
+      conditions.push({ division: division.toUpperCase() });
     }
 
     if (category) {
@@ -19,31 +19,46 @@ const getCourses = async (req, res, next) => {
         $or: [{ slug: category.toLowerCase() }, { _id: category.match(/^[0-9a-fA-F]{24}$/) ? category : null }],
       });
       if (cat) {
-        query.categoryId = cat._id;
+        conditions.push({ categoryId: cat._id });
       }
     }
 
     if (mode && mode !== 'ALL') {
-      query.mode = { $in: [mode, 'BOTH'] };
+      conditions.push({ mode: { $in: [mode, 'BOTH'] } });
     }
 
     if (featured === 'true') {
-      query.isFeatured = true;
+      conditions.push({ isFeatured: true });
+    }
+
+    if (state && state !== 'ALL' && state !== 'All' && state !== 'All India') {
+      conditions.push({
+        $or: [
+          { states: state },
+          { states: 'All India' },
+          { states: { $size: 0 } },
+          { states: { $exists: false } },
+        ],
+      });
     }
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { shortDescription: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } },
-      ];
+      conditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { shortDescription: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search, 'i')] } },
+        ],
+      });
     }
+
+    const query = conditions.length === 1 ? conditions[0] : { $and: conditions };
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const total = await Course.countDocuments(query);
     const courses = await Course.find(query)
       .populate('categoryId', 'name slug icon color division')
-      .sort({ isFeatured: -1, createdAt: -1 })
+      .sort({ displayOrder: 1, isFeatured: -1, createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit, 10));
 
@@ -146,6 +161,10 @@ const createCourse = async (req, res, next) => {
       seoDescription,
       tags,
       isFeatured,
+      states,
+      tileSubtitle,
+      tileColor,
+      displayOrder,
     } = req.body;
 
     const courseSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -181,6 +200,10 @@ const createCourse = async (req, res, next) => {
       seoDescription: seoDescription || shortDescription,
       tags: tags || [],
       isFeatured: isFeatured || false,
+      states: Array.isArray(states) && states.length > 0 ? states : ['All India'],
+      tileSubtitle: tileSubtitle || '',
+      tileColor: tileColor || '',
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
     });
 
     return sendSuccess(res, 'Course created successfully', course, 201);
@@ -223,10 +246,44 @@ const deleteCourse = async (req, res, next) => {
 };
 
 
+// Public: Get list of all states associated with courses
+const getAvailableStates = async (req, res, next) => {
+  try {
+    const defaultStates = [
+      'All India',
+      'Andhra Pradesh',
+      'Telangana',
+      'Karnataka',
+      'Tamil Nadu',
+      'Maharashtra',
+      'Delhi',
+      'Uttar Pradesh',
+      'Kerala',
+      'Bihar',
+      'Rajasthan',
+      'Madhya Pradesh',
+      'West Bengal',
+      'Gujarat',
+      'Punjab',
+      'Haryana',
+      'Odisha',
+    ];
+    const dbStates = await Course.distinct('states');
+    const flatDbStates = (dbStates || []).flat().filter(Boolean);
+    const set = new Set(['All India']);
+    defaultStates.forEach((s) => set.add(s));
+    flatDbStates.forEach((s) => set.add(s));
+    return sendSuccess(res, 'Available states retrieved', Array.from(set));
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCourses,
   getCourseBySlug,
   getCategories,
+  getAvailableStates,
   createCourse,
   updateCourse,
   deleteCourse,

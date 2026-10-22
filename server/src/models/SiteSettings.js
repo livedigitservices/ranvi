@@ -47,6 +47,18 @@ const SiteSettingsSchema = new mongoose.Schema({
       type: String,
       default: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
     },
+    slides: [{
+      image: { type: String, default: '' },
+      badgeText: { type: String, default: '' },
+      headlinePrefix: { type: String, default: '' },
+      headlineHighlight: { type: String, default: '' },
+      headlineSuffix: { type: String, default: '' },
+      subheadline: { type: String, default: '' },
+      primaryCtaText: { type: String, default: '' },
+      primaryCtaLink: { type: String, default: '' },
+      secondaryCtaText: { type: String, default: '' },
+      secondaryCtaLink: { type: String, default: '' },
+    }],
     benefits: [{
       icon: { type: String, default: 'ShieldCheck' },
       title: { type: String, default: 'Expert Faculty' },

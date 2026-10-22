@@ -1,1041 +1,908 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { courseService, examService, facultyService } from '../../services';
+import { courseService } from '../../services';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
-import { CourseCard } from '../../components/course/CourseCard';
-import { EntranceExamsSection } from '../../components/home/EntranceExamsSection';
 import {
-  GraduationCap,
   Sparkles,
-  PlayCircle,
-  Award,
   BookOpen,
-  CheckCircle2,
   Users,
-  ShieldCheck,
-  TrendingUp,
-  Video,
-  FileCheck2,
-  HelpCircle,
-  PhoneCall,
-  ArrowRight,
-  Landmark,
-  Building2,
   Shield,
-  Train,
-  FileText,
-  Briefcase,
-  ChevronRight,
   Star,
   MonitorPlay,
+  ArrowRight,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  RotateCcw,
+  GraduationCap,
+  FileText,
   ClipboardList,
-  MessageSquare,
-  MessageSquareQuote,
-  UserCheck,
-  Calendar,
-  Clock,
-  Laptop,
-  Check,
-  Zap,
-  Target,
-  Quote,
+  Mail,
+  Award,
 } from 'lucide-react';
 
 export const HomePage = () => {
   const { settings } = useSiteSettings();
 
+  // ----------------------------------------------------
+  // 1. STATE & DATA HOOKS
+  // ----------------------------------------------------
   const [courses, setCourses] = useState([]);
-  const [demoExams, setDemoExams] = useState([]);
-  const [facultyMembers, setFacultyMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('ALL');
+  const [availableStates, setAvailableStates] = useState([
+    'All India',
+    'Andhra Pradesh',
+    'Telangana',
+    'Karnataka',
+    'Tamil Nadu',
+    'Maharashtra',
+    'Delhi',
+    'Uttar Pradesh',
+    'Kerala',
+  ]);
+  const [selectedState, setSelectedState] = useState('Andhra Pradesh');
+  const [coursesLoading, setCoursesLoading] = useState(true);
 
+  // Expanded "View All" state per coaching card
+  const [expandedSection, setExpandedSection] = useState({
+    bankers: false,
+    competitive: false,
+    entrance: false,
+  });
+
+  // Hero Slider State
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSliderHovered, setIsSliderHovered] = useState(false);
+
+  // Fetch available states
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStates = async () => {
       try {
-        const [courseRes, examRes, facultyRes] = await Promise.all([
-          courseService.getCourses({ limit: 12 }),
-          examService.getMockTests({ isDemoFree: 'true', limit: 4 }),
-          facultyService.getFacultyList(),
-        ]);
-
-        if (courseRes?.success) {
-          const courseList = Array.isArray(courseRes.data?.courses)
-            ? courseRes.data.courses
-            : Array.isArray(courseRes.data)
-            ? courseRes.data
-            : [];
-          setCourses(courseList);
-        }
-
-        if (examRes?.success) {
-          const examList = Array.isArray(examRes.data?.tests)
-            ? examRes.data.tests
-            : Array.isArray(examRes.data)
-            ? examRes.data
-            : [];
-          setDemoExams(examList);
-        }
-
-        if (facultyRes?.success) {
-          const rawFaculty = Array.isArray(facultyRes.data)
-            ? facultyRes.data
-            : Array.isArray(facultyRes.message)
-            ? facultyRes.message
-            : Array.isArray(facultyRes)
-            ? facultyRes
-            : [];
-          if (rawFaculty.length > 0) {
-            setFacultyMembers(rawFaculty.slice(0, 3));
-          }
+        const res = await courseService.getAvailableStates();
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          setAvailableStates(res.data);
         }
       } catch (err) {
-        console.error('Failed to load home data', err);
-      } finally {
-        setLoading(false);
+        // Graceful fallback already in initial state
       }
     };
-    fetchData();
+    fetchStates();
   }, []);
 
-  // Fallbacks for dynamic settings
-  const hero = {
-    badgeText:
-      settings?.heroBanner?.badgeText ||
-      "India's Premier Coaching for Banking & Government Exams",
-    headline:
-      settings?.heroBanner?.headline ||
-      (settings?.heroBanner?.headlinePrefix
-        ? `${settings.heroBanner.headlinePrefix} ${settings.heroBanner.headlineHighlight || ''} ${settings.heroBanner.headlineSuffix || ''}`.trim()
-        : 'Build Your Banking & Government Career with Us'),
-    highlightWord:
-      settings?.heroBanner?.highlightWord ||
-      settings?.heroBanner?.headlineHighlight ||
-      'Banking & Government',
-    subheadline:
-      settings?.heroBanner?.subheadline ||
-      'Expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
-    primaryCtaText: settings?.heroBanner?.primaryCtaText || "Explore Banker's Path",
-    primaryCtaLink: settings?.heroBanner?.primaryCtaLink || '/bankers-path',
-    secondaryCtaText: settings?.heroBanner?.secondaryCtaText || 'Book Free Demo',
-    secondaryCtaLink: settings?.heroBanner?.secondaryCtaLink || '/enquiry',
-    heroImage:
-      settings?.heroBanner?.heroImage ||
-      settings?.heroBanner?.heroImageUrl ||
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop',
-  };
+  // Fetch courses whenever selectedState changes
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setCoursesLoading(true);
+        const params = { limit: 100 };
+        if (selectedState && selectedState !== 'ALL' && selectedState !== 'All India') {
+          params.state = selectedState;
+        }
+        const res = await courseService.getCourses(params);
+        if (res?.success) {
+          let list = Array.isArray(res.data?.courses)
+            ? res.data.courses
+            : Array.isArray(res.data)
+            ? res.data
+            : [];
 
-  const bannerStrip = settings?.bannerStrip || {
-    tagline: 'Learn • Excel • Achieve',
-  };
+          // Client-side filter guarantee if remote backend hasn't re-seeded with state filters yet
+          if (selectedState && selectedState !== 'ALL' && selectedState !== 'All India') {
+            const stateMatches = list.filter((c) => {
+              if (!c.states || c.states.length === 0) return true;
+              return c.states.includes(selectedState) || c.states.includes('All India');
+            });
+            if (stateMatches.length > 0) {
+              list = stateMatches;
+            }
+          }
+          setCourses(list);
+        }
+      } catch (err) {
+        console.error('Failed to load courses', err);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchCourses();
+  }, [selectedState]);
 
+  // ----------------------------------------------------
+  // 2. HERO BANNER SLIDES CONFIGURATION (DYNAMIC SLIDING)
+  // ----------------------------------------------------
+  const defaultSlides = [
+    {
+      image: '/assets/hero-banner.png',
+      badgeText: "India's Premier Coaching for Banking & Government Exams",
+      headlinePrefix: 'Build Your',
+      headlineHighlight: 'Banking & Government',
+      headlineSuffix: 'Career with Us',
+      subheadline:
+        'Expert-led coaching, live interactive Zoom classes, high-yield study material, and 10–20 real-pattern online mock tests to help you achieve your next career milestone.',
+      primaryCtaText: "Explore Banker's Path",
+      primaryCtaLink: '/bankers-path',
+      secondaryCtaText: 'Book Free Demo',
+      secondaryCtaLink: '/enquiry',
+      tagline: 'Learn • Excel • Achieve',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop',
+      badgeText: 'Proven Results in IBPS, SBI, SSC & Railways Recruitment',
+      headlinePrefix: 'Crack Top',
+      headlineHighlight: 'Competitive Exams',
+      headlineSuffix: 'in 1st Attempt',
+      subheadline:
+        'Master speed mathematics, high-difficulty analytical reasoning, and current affairs with personalized faculty mentorship and 20+ full-length model papers.',
+      primaryCtaText: 'View Competitive Exams',
+      primaryCtaLink: '/competitive-exams',
+      secondaryCtaText: 'Take Free Mock Test',
+      secondaryCtaLink: '/mock-tests',
+      tagline: 'Practice • Master • Succeed',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=1400&auto=format&fit=crop',
+      badgeText: 'National & State Level Admissions Coaching',
+      headlinePrefix: 'Excel in Top',
+      headlineHighlight: 'Entrance Exams',
+      headlineSuffix: 'with Ranvi',
+      subheadline:
+        'Targeted coaching for JEE Main, NEET-UG, CUET, AP EAPCET, TG EAPCET, and POLYCET by master educators with NCERT line-by-line problem solving.',
+      primaryCtaText: 'Explore Entrance Exams',
+      primaryCtaLink: '/entrance-exams',
+      secondaryCtaText: 'Get Free Guidance',
+      secondaryCtaLink: '/enquiry',
+      tagline: 'Aspire • Learn • Excel',
+    },
+  ];
+
+  const slides =
+    settings?.heroBanner?.slides && settings.heroBanner.slides.length > 0
+      ? settings.heroBanner.slides
+      : defaultSlides;
+
+  // Auto-advance slides every 5.5s, pause on hover
+  useEffect(() => {
+    if (isSliderHovered || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [isSliderHovered, slides.length]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  // ----------------------------------------------------
+  // 3. COURSE CATEGORIZATION & UTILITIES
+  // ----------------------------------------------------
+  const bankersCourses = courses.filter((c) => c.division === 'BANKERS_PATH');
+  const competitiveCourses = courses.filter((c) => c.division === 'COMPETITIVE_EXAMS');
+  const entranceCourses = courses.filter((c) => c.division === 'ENTRANCE_EXAMS');
+
+  // Exact fallback 8 tiles matching the reference image
   const defaultBankersTiles = [
-    { name: 'JAIIB', path: '/courses/jaiib-master-class-2026', bg: 'from-[#0066CC] to-[#004C99]', arrowColor: 'text-[#0066CC]' },
-    { name: 'CAIIB', path: '/courses/caiib-advanced-comprehensive-batch', bg: 'from-[#E52D27] to-[#B31217]', arrowColor: 'text-[#D32F2F]' },
-    { name: 'DBF', path: '/bankers-path?category=DBF', bg: 'from-[#00A86B] to-[#008050]', arrowColor: 'text-[#00A86B]' },
-    { name: 'DTM', path: '/bankers-path?category=DTM', bg: 'from-[#F2A900] to-[#D48800]', arrowColor: 'text-[#D48800]' },
-    { name: 'AMFI', path: '/bankers-path?category=AMFI', bg: 'from-[#8E24AA] to-[#6A1B9A]', arrowColor: 'text-[#8E24AA]' },
-    { name: 'NISM (SEBI)', path: '/bankers-path?category=NISM', bg: 'from-[#1E90FF] to-[#0066CC]', arrowColor: 'text-[#1976D2]' },
-    { name: 'IRDAI', path: '/bankers-path?category=IRDAI', bg: 'from-[#E91E63] to-[#C2185B]', arrowColor: 'text-[#E91E63]' },
-    { name: 'DRA', path: '/bankers-path?category=DRA', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
+    { name: 'JAIIB', subtitle: 'Junior Associate of IIBF', color: '#008080', slug: 'jaiib-master-class-2026' },
+    { name: 'CAIIB', subtitle: 'Certified Associate of IIBF', color: '#7A1D5A', slug: 'caiib-advanced-comprehensive-batch' },
+    { name: 'DBF', subtitle: 'Diploma in Banking & Finance', color: '#48631E', slug: 'dbf-diploma-banking-finance' },
+    { name: 'DTM', subtitle: 'Diploma in Treasury Management', color: '#B94715', slug: 'dtm-treasury-management' },
+    { name: 'AMFI', subtitle: 'Mutual Fund Certification', color: '#2D5482', slug: 'amfi-mutual-funds-certification' },
+    { name: 'NISM (SEBI)', subtitle: 'Securities Market Certification', color: '#96372B', slug: 'nism-sebi-certification' },
+    { name: 'IRDAI', subtitle: 'Insurance Regulatory', color: '#22636B', slug: 'irdai-insurance-certification' },
+    { name: 'DRA', subtitle: 'Debt Recovery Agent', color: '#512D6D', slug: 'dra-debt-recovery-agent' },
   ];
 
-  const bankersSection = {
-    title: settings?.bankersPathSection?.title || "Banker's Path",
-    subtitle: settings?.bankersPathSection?.subtitle || 'Banking • Insurance • Finance Career Programs',
-    buttonText: settings?.bankersPathSection?.buttonText || 'View All',
-    buttonLink: settings?.bankersPathSection?.buttonLink || '/bankers-path',
-    tiles: defaultBankersTiles,
+  const defaultCompetitiveTiles = [
+    { name: 'IBPS', subtitle: 'PO / Clerk / SO / RRB', color: '#008080', slug: 'ibps-po-clerk-so-rrb' },
+    { name: 'SBI', subtitle: 'PO / Clerk / Specialist', color: '#7A1D5A', slug: 'sbi-po-clerk-target-batch' },
+    { name: 'RBI', subtitle: 'Grade B / Assistant', color: '#48631E', slug: 'rbi-grade-b-assistant' },
+    { name: 'SSC', subtitle: 'CGL / CHSL / MTS', color: '#B94715', slug: 'ssc-cgl-chsl-cpo-mts' },
+    { name: 'RAILWAYS', subtitle: 'RRB NTPC / Group D', color: '#2D5482', slug: 'railways-rrb-ntpc-group-d' },
+    { name: 'POLICE & DEFENCE', subtitle: 'SI / Constable / Defence', color: '#96372B', slug: 'police-si-constable-defence-batch' },
+    { name: 'LIC / INSURANCE', subtitle: 'AAO / ADO / Assistant', color: '#22636B', slug: 'lic-aao-ado-insurance-recruitment' },
+    { name: 'TEACHING', subtitle: 'TET / CTET / DSC', color: '#512D6D', slug: 'teaching-ctet-dsc-state-tet' },
+  ];
+
+  const defaultEntranceTiles = [
+    { name: 'JEE', subtitle: 'Main / Advanced', color: '#008080', slug: 'jee-main-advanced-engineering' },
+    { name: 'NEET-UG', subtitle: 'Medical Entrance', color: '#7A1D5A', slug: 'neet-ug-medical-entrance' },
+    { name: 'CUET', subtitle: 'UG / PG', color: '#48631E', slug: 'cuet-ug-central-universities' },
+    { name: 'AP EAPCET', subtitle: 'Engineering / Agriculture', color: '#B94715', slug: 'ap-eapcet-engineering-agriculture' },
+    { name: 'TG EAPCET', subtitle: 'Engineering / Agriculture', color: '#2D5482', slug: 'tg-eapcet-engineering-agriculture' },
+    { name: 'CLAT', subtitle: 'Law Entrance', color: '#96372B', slug: 'clat-common-law-admission-test' },
+    { name: 'NDA', subtitle: 'National Defence Academy', color: '#22636B', slug: 'nda-national-defence-academy' },
+    { name: 'POLYCET', subtitle: 'Polytechnic Diploma', color: '#512D6D', slug: 'polycet-diploma-entrance-exam' },
+  ];
+
+  // Helper to extract clean acronym for tiles
+  const getTileShortName = (course) => {
+    if (!course?.title) return 'PROGRAM';
+    const t = course.title;
+    if (/^JAIIB/i.test(t)) return 'JAIIB';
+    if (/^CAIIB/i.test(t)) return 'CAIIB';
+    if (/\bDBF\b/i.test(t)) return 'DBF';
+    if (/\bDTM\b/i.test(t)) return 'DTM';
+    if (/\bAMFI\b/i.test(t)) return 'AMFI';
+    if (/\bNISM\b/i.test(t)) return 'NISM (SEBI)';
+    if (/\bIRDAI\b/i.test(t)) return 'IRDAI';
+    if (/\bDRA\b/i.test(t)) return 'DRA';
+    if (/^IBPS/i.test(t)) return 'IBPS';
+    if (/^SBI/i.test(t)) return 'SBI';
+    if (/^RBI/i.test(t)) return 'RBI';
+    if (/^SSC/i.test(t)) return 'SSC';
+    if (/\bRailways\b|\bRRB\b/i.test(t)) return 'RAILWAYS';
+    if (/Police/i.test(t)) return 'POLICE & DEFENCE';
+    if (/LIC/i.test(t)) return 'LIC / INSURANCE';
+    if (/Teaching/i.test(t)) return 'TEACHING';
+    if (/^JEE/i.test(t)) return 'JEE';
+    if (/^NEET/i.test(t)) return 'NEET-UG';
+    if (/^CUET/i.test(t)) return 'CUET';
+    if (/AP EAPCET/i.test(t)) return 'AP EAPCET';
+    if (/TG EAPCET/i.test(t)) return 'TG EAPCET';
+    if (/CLAT/i.test(t)) return 'CLAT';
+    if (/NDA/i.test(t)) return 'NDA';
+    if (/POLYCET/i.test(t)) return 'POLYCET';
+    const parts = t.split(' ');
+    return parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
   };
 
-  const defaultCompTiles = [
-    { name: 'IBPS', path: '/competitive-exams?cat=IBPS', bg: 'from-[#1E88E5] to-[#1565C0]', arrowColor: 'text-[#1976D2]' },
-    { name: 'SBI', path: '/competitive-exams?cat=SBI', bg: 'from-[#E53935] to-[#C62828]', arrowColor: 'text-[#E53935]' },
-    { name: 'RBI', path: '/competitive-exams?cat=RBI', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
-    { name: 'SSC', path: '/competitive-exams?cat=SSC', bg: 'from-[#EF6C00] to-[#E65100]', arrowColor: 'text-[#EF6C00]' },
-    { name: 'RAILWAYS', path: '/competitive-exams?cat=RAILWAYS', bg: 'from-[#7B1FA2] to-[#6A1B9A]', arrowColor: 'text-[#7B1FA2]' },
-    { name: 'LIC', path: '/competitive-exams?cat=LIC', bg: 'from-[#1565C0] to-[#0D47A1]', arrowColor: 'text-[#1565C0]' },
-    { name: 'POLICE', path: '/competitive-exams?cat=POLICE', bg: 'from-[#D81B60] to-[#C2185B]', arrowColor: 'text-[#D81B60]' },
-    { name: 'DEFENCE', path: '/competitive-exams?cat=DEFENCE', bg: 'from-[#00897B] to-[#00695C]', arrowColor: 'text-[#00897B]' },
-    { name: 'TEACHING', path: '/competitive-exams?cat=TEACHING', bg: 'from-[#F59E0B] to-[#D97706]', arrowColor: 'text-[#D97706]' },
-    { name: 'STATE GOVT', path: '/competitive-exams?cat=STATE GOVT', bg: 'from-[#5E35B1] to-[#4527A0]', arrowColor: 'text-[#5E35B1]' },
-    { name: 'OTHER EXAMS', path: '/competitive-exams?cat=ALL', bg: 'from-[#558B2F] to-[#33691E]', arrowColor: 'text-[#558B2F]' },
-  ];
-
-  const competitiveSection = {
-    title: settings?.competitiveSection?.title || settings?.competitiveExamsSection?.title || 'All Competitive Exams Coaching',
-    subtitle: settings?.competitiveSection?.subtitle || settings?.competitiveExamsSection?.subtitle || 'Government Jobs • Banking • Railways • Insurance • Defence & More',
-    buttonText: settings?.competitiveSection?.buttonText || 'View All',
-    buttonLink: settings?.competitiveSection?.buttonLink || '/competitive-exams',
-    tiles: defaultCompTiles,
-  };
-
-  const actionHubs = settings?.quickActionHubs || [
-    {
-      title: 'Daily Live Classes',
-      description: 'Interactive Zoom lectures with bank general managers & live doubt solving.',
-      link: '/online-classes',
-      buttonText: 'Join Live Batch',
-      badge: 'Daily Live',
-    },
-    {
-      title: 'Recorded Video Bank',
-      description: 'Full syllabus chapter-wise HD videos with single-device secure streaming.',
-      link: '/recorded-classes',
-      buttonText: 'Watch Lessons',
-      badge: '24/7 Access',
-    },
-    {
-      title: 'Exam Room & Mock Papers',
-      description: '10 to 20 full-length real test pattern papers with instant percentile rank.',
-      link: '/mock-tests',
-      buttonText: 'Take Free Test',
-      badge: 'Real Simulation',
-    },
-    {
-      title: 'Expert Mentorship',
-      description: 'Personal study roadmaps, exam strategy reviews, and interview guidance.',
-      link: '/faculty',
-      buttonText: 'Meet Faculty',
-      badge: '1-on-1 Guidance',
-    },
-  ];
-
-  const zoomInfo = settings?.zoomSection || {
-    headline: 'Live Interactive Zoom Batches with Ex-Bank Executives',
-    schedule: 'Mon – Sat | 7:30 PM to 9:00 PM IST',
-    description:
-      'Experience two-way real-time learning designed specifically for working bankers and serious aspirants.',
-  };
-
-  const modelTestInfo = settings?.modelTestSection || {
-    headline: '10 to 20 Full-Length Online Mock Test Papers per Subject',
-    paperCountText: '10 to 20 Full-Length Mock Papers',
-    description:
-      'Exact replicas of IIBF JAIIB/CAIIB, IBPS PO, and SBI online exam interfaces with negative marking and sectional timers.',
-  };
-
-  const roadmapSteps = settings?.roadmapSection?.steps || [
-    { title: 'Foundational Concepts', description: 'Master core banking laws, economic frameworks, and speed mathematics.' },
-    { title: 'Interactive Live Batches', description: 'Attend daily evening Zoom classes led by veteran banking directors.' },
-    { title: 'Chapter-Wise Quizzes', description: 'Reinforce each topic immediately after lecture with practice drills.' },
-    { title: 'Full-Length Mock Papers', description: 'Attempt 10-20 exam simulations with real timer & negative marking.' },
-    { title: 'Performance Analytics', description: 'Review detailed speed-accuracy breakdown and weak chapter alerts.' },
-    { title: 'Exam Day Success', description: 'Walk into the examination hall with total clarity and confidence.' },
-  ];
-
-  const testimonialsList = settings?.testimonials || [
-    {
-      name: 'Pooja Verma',
-      designation: 'Assistant Manager, Union Bank of India',
-      exam: 'Cleared JAIIB (1st Attempt - 84%)',
-      quote: 'The live evening Zoom batches by Dr. Rajesh Sharma made AFM and PPB concepts so crystal clear. The 10 mock test papers matched the exact IIBF exam screen format!',
-      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop',
-    },
-    {
-      name: 'Karthik Raman',
-      designation: 'Probationary Officer, State Bank of India',
-      exam: 'Cleared SBI PO 2025 (AIR 64)',
-      quote: 'Ranvi Institutions gave me the exact speed techniques for DI and Reasoning. The sectional mock tests and negative marking analytics pinpointed my weak areas instantly.',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop',
-    },
-    {
-      name: 'Sneha Kulkarni',
-      designation: 'Scale-II Manager, Bank of Baroda',
-      exam: 'Cleared CAIIB (All 5 Papers in 1st Attempt)',
-      quote: 'Managing bank hours and preparing for CAIIB was tough, but the recorded video library and doubt clearing sessions allowed me to study at my own pace with single-device ease.',
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop',
-    },
-  ];
-
-  const faqsList = settings?.faqs || [
-    {
-      question: 'What makes Ranvi Institutions different from other coaching platforms?',
-      answer:
-        'Ranvi Institutions combines veteran banking directors (Ex-AGM SBI, Ex-Treasury Heads) with state-of-the-art interactive live classes, exact-pattern mock tests, and single-device protected learning.',
-    },
-    {
-      question: 'Can I access recorded video classes if I miss the live Zoom session?',
-      answer:
-        'Yes! Every single live lecture is recorded and uploaded to your secure student dashboard within 2 hours of completion, accessible 24/7 throughout your validity.',
-    },
-    {
-      question: 'How many online mock test papers are included with each course?',
-      answer:
-        'Each major course program includes 10 to 20 full-length model test papers plus chapter-wise practice tests with automated scoring and comprehensive solution explanations.',
-    },
-  ];
-
-  const defaultFaculty = [
-    {
-      name: 'Dr. Rajesh Sharma',
-      designation: 'Chief Academic Director & Banking Mentor',
-      experience: 'Ex-General Manager, State Bank of India • 28+ Yrs Exp',
-      specialization: 'JAIIB / CAIIB, Banking Regulations & Retail Banking',
-      photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Prof. Ananya Sen',
-      designation: 'Head of Quantitative Aptitude & DI',
-      experience: 'Ex-IBPS Chief Trainer • 14+ Yrs Teaching',
-      specialization: 'Speed Math, Data Interpretation, High-Yield Shortcuts',
-      photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Vikas Deshmukh (CA, CFA)',
-      designation: 'Lead Mentor - Treasury & Investment Banking',
-      experience: 'Ex-Treasury Head, Punjab National Bank • 19+ Yrs Exp',
-      specialization: 'Treasury Management (DTM), NISM, AMFI & Forex Operations',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
-    },
-  ];
-
-  const displayFaculty = Array.isArray(facultyMembers) && facultyMembers.length > 0 ? facultyMembers : defaultFaculty;
-
-  const validCourses = Array.isArray(courses) ? courses : [];
-  const filteredDisplayCourses =
-    activeTab === 'ALL'
-      ? validCourses
-      : activeTab === 'BANKERS'
-      ? validCourses.filter((c) => c.division === 'BANKERS_PATH')
-      : validCourses.filter((c) => c.division === 'COMPETITIVE_EXAMS');
+  const activeSlide = slides[currentSlide] || slides[0];
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-24 bg-[#F8FAFC]">
+    <div className="space-y-6 sm:space-y-8 pb-16 bg-[#F8FAFC]">
       {/* ========================================================
-          1. HERO BANNER (100% DYNAMIC VIA ADMIN SETTINGS)
+          HERO BANNER: DYNAMIC SLIDING CAROUSEL (EXCEPT HERO)
       ======================================================== */}
-      {/* ========================================================
-          1. HERO BANNER (MATCHING REFERENCE BANNER EXACTLY)
-      ======================================================== */}
-      <section className="relative w-full overflow-hidden bg-[#081A36] text-white shadow-2xl">
-        {/* Background Banner Image with Student & Academic Setting */}
+      <section
+        className="relative w-full overflow-hidden bg-[#081A36] text-white shadow-2xl"
+        onMouseEnter={() => setIsSliderHovered(true)}
+        onMouseLeave={() => setIsSliderHovered(false)}
+      >
         <div className="absolute inset-0 z-0">
-          <img
-            src="/assets/hero-banner.png"
-            alt="Ranvi Institutions Hero Banner"
-            className="w-full h-full object-cover object-right lg:object-right"
-          />
-          {/* Seamless Deep Navy Gradient Mask to Ensure High Contrast & Crisp Typography */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#081A36] via-[#081A36]/95 via-40% to-transparent sm:via-[#081A36]/90 sm:via-48% lg:via-[#081A36]/80 lg:via-55% xl:via-[#081A36]/70"></div>
+          {slides.map((s, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
+            >
+              <img
+                src={s.image || '/assets/hero-banner.png'}
+                alt={`Hero Slide ${idx + 1}`}
+                className="w-full h-full object-cover object-right scale-105 transition-transform duration-7000 ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#081A36] via-[#081A36]/95 via-40% to-transparent sm:via-[#081A36]/90 sm:via-48% lg:via-[#081A36]/80 lg:via-55%"></div>
+            </div>
+          ))}
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-12 lg:pt-16 pb-10 sm:pb-14 lg:pb-20">
-          <div className="max-w-2xl text-left space-y-6 sm:space-y-8">
-            {/* Main Headline Recreating the Reference Typography */}
-            <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black font-serif tracking-tight leading-[1.12] text-white drop-shadow-md">
-              {hero.headline === 'Build Your Banking & Government Career with Us' || !hero.headline ? (
-                <>
-                  Build Your<br />
-                  <span className="text-[#F4B942]">Banking & Government</span><br />
-                  Career with Us
-                </>
-              ) : hero.highlightWord && hero.headline.includes(hero.highlightWord) ? (
-                <>
-                  {hero.headline.split(hero.highlightWord)[0]}
-                  <span className="text-[#F4B942]">{hero.highlightWord}</span>
-                  {hero.headline.split(hero.highlightWord).slice(1).join(hero.highlightWord)}
-                </>
-              ) : (
-                hero.headline
-              )}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 pt-8 sm:pt-12 pb-10 sm:pb-14">
+          <div className="max-w-xl text-left space-y-5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[#F4B942] text-[10px] sm:text-xs font-black tracking-wider uppercase">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{activeSlide.badgeText || "India's Premier Coaching Institute"}</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight leading-[1.15] text-white drop-shadow-md">
+              {activeSlide.headlinePrefix}{' '}
+              <span className="text-[#F4B942]">{activeSlide.headlineHighlight}</span>
+              {activeSlide.headlineSuffix ? ` ${activeSlide.headlineSuffix}` : ''}
             </h1>
 
-            {/* 4 Feature Icons Row Exactly Like Reference Banner */}
-            <div className="grid grid-cols-4 gap-1 sm:gap-4 max-w-lg">
-              {/* Feature 1: Expert Faculty */}
-              <div className="flex flex-col items-center text-center">
-                <div className="relative mb-2 flex items-center justify-center">
-                  <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
-                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F4B942] fill-[#F4B942] absolute inset-0 m-auto translate-y-[-1px]" />
+            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed max-w-lg">
+              {activeSlide.subheadline}
+            </p>
+
+            <div className="grid grid-cols-4 gap-2 pt-1 text-center">
+              <div>
+                <div className="relative mb-1.5 flex items-center justify-center">
+                  <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white stroke-[1.8]" />
+                  <Star className="w-3 h-3 text-[#F4B942] fill-[#F4B942] absolute inset-0 m-auto" />
                 </div>
-                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                <span className="text-[10px] sm:text-xs font-bold text-white leading-tight block">
                   Expert<br />Faculty
                 </span>
               </div>
-
-              {/* Feature 2: Updated Study Material */}
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-2 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
+              <div>
+                <div className="mb-1.5 flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-white stroke-[1.8]" />
                 </div>
-                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
-                  Updated<br />Study Material
+                <span className="text-[10px] sm:text-xs font-bold text-white leading-tight block">
+                  Updated<br />Material
                 </span>
               </div>
-
-              {/* Feature 3: Online & Offline Classes */}
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-2 flex items-center justify-center">
-                  <MonitorPlay className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
+              <div>
+                <div className="mb-1.5 flex items-center justify-center">
+                  <MonitorPlay className="w-6 h-6 sm:w-8 sm:h-8 text-white stroke-[1.8]" />
                 </div>
-                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
-                  Online &<br />Offline Classes
+                <span className="text-[10px] sm:text-xs font-bold text-white leading-tight block">
+                  Online &<br />Offline
                 </span>
               </div>
-
-              {/* Feature 4: Personal Guidance */}
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-2 flex items-center justify-center">
-                  <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.8]" />
+              <div>
+                <div className="mb-1.5 flex items-center justify-center">
+                  <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white stroke-[1.8]" />
                 </div>
-                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-white leading-tight">
+                <span className="text-[10px] sm:text-xs font-bold text-white leading-tight block">
                   Personal<br />Guidance
                 </span>
               </div>
             </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link
+                to={activeSlide.primaryCtaLink || '/bankers-path'}
+                className="inline-flex items-center gap-2 bg-[#1769D2] hover:bg-[#1257b0] text-white px-5 py-2.5 rounded-xl font-black text-xs transition-all shadow-md active:scale-95"
+              >
+                {activeSlide.primaryCtaText || "Explore Banker's Path"} <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                to={activeSlide.secondaryCtaLink || '/enquiry'}
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/25 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+              >
+                {activeSlide.secondaryCtaText || 'Book Free Demo'}
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Gold Strip: Learn • Excel • Achieve */}
-        <div className="w-full bg-[#F4B942] py-2 sm:py-2.5 px-4 shadow-md relative z-20">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 text-center">
-            <span className="text-[#0B1E3D] font-black text-xs sm:text-sm md:text-base lg:text-lg tracking-widest uppercase">
-              {bannerStrip.tagline || 'Learn • Excel • Achieve'}
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={prevSlide}
+              aria-label="Previous Slide"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={nextSlide}
+              aria-label="Next Slide"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
+        <div className="w-full bg-[#F4B942] py-2 px-4 shadow-md relative z-20 text-center">
+          <span className="text-[#0B1E3D] font-black text-xs sm:text-sm tracking-widest uppercase font-heading">
+            {activeSlide.tagline || 'Learn • Excel • Achieve'}
+          </span>
+        </div>
+      </section>
+
+      {/* ========================================================
+          1. "SELECT YOUR STATE" CARD (EXACT MATCH TO REFERENCE)
+      ======================================================== */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="bg-[#F0F7FF] rounded-2xl p-4 sm:p-6 border border-[#BEE3F8] shadow-xs space-y-3">
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#1769D2] block">
+              PREPARE FOR STATE & CENTRAL EXAMS
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight mt-0.5">
+              Select Your State
+            </h2>
+            <p className="text-xs text-slate-600 leading-relaxed mt-1">
+              Choose your state to filter and explore the relevant government exams, entrance exams, and syllabus available for your state.
+            </p>
+          </div>
+
+          <div className="space-y-1.5 pt-1">
+            <label className="block text-xs font-black text-slate-800">
+              Your State / UT
+            </label>
+            <div className="relative">
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                className="w-full appearance-none px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-[#0B2545] shadow-xs cursor-pointer focus:ring-2 focus:ring-[#1769D2] outline-none"
+              >
+                <option value="All India">All India</option>
+                {availableStates
+                  .filter((s) => s !== 'All India')
+                  .map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-600">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 tracking-wider uppercase block pt-0.5">
+              CHOOSE A STATE TO SEE TAILORED EXAMS, NOTIFICATIONS, SYLLABUS, AND TEST SERIES.
             </span>
           </div>
-        </div>
-      </section>
 
-      {/* ========================================================
-          2. BANKER'S PATH SECTION (DYNAMIC TILES & CONTENT)
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#EBF4FE] rounded-3xl p-5 sm:p-7 md:p-8 border border-[#D0E2FB] shadow-sm">
-          {/* Card Header */}
-          <div className="flex items-center justify-between mb-5 sm:mb-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#D4E6FA] text-[#0B3B70] flex items-center justify-center shrink-0 shadow-xs">
-                <Landmark className="w-6 h-6 sm:w-7 sm:h-7 text-[#0B3B70]" />
-              </div>
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] font-serif tracking-tight leading-tight">
-                  {bankersSection.title}
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
-                  {bankersSection.subtitle}
-                </p>
-              </div>
-            </div>
-
-            <Link
-              to={bankersSection.buttonLink || '/bankers-path'}
-              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-3 sm:px-5 py-3 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
-            >
-              <span>{bankersSection.buttonText || 'View All'}</span>
-              <ArrowRight className="w-4 h-4 ml-0.5" />
-            </Link>
-          </div>
-
-          {/* 8 Color-Coded Tiles Grid */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4">
-            {bankersSection.tiles.map((tile, idx) => (
-              <Link
-                key={idx}
-                to={tile.path || '/bankers-path'}
-                className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
-              >
-                <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs leading-tight">
-                  {tile.name === 'NISM (SEBI)' ? (
-                    <span className="flex flex-col text-left">
-                      <span>NISM</span>
-                      <span className="text-[11px] sm:text-xs font-bold opacity-90">(SEBI)</span>
-                    </span>
-                  ) : (
-                    tile.name
-                  )}
-                </span>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
-                  <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          3. ALL COMPETITIVE EXAMS COACHING SECTION
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#FFF9EE] rounded-3xl p-5 sm:p-7 md:p-8 border border-[#FFE8BF] shadow-sm">
-          {/* Card Header */}
-          <div className="flex items-center justify-between mb-5 sm:mb-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#FFE5A3] text-[#0A2540] flex items-center justify-center shrink-0 shadow-xs">
-                <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7 text-[#0A2540]" />
-              </div>
-              <div  >
-                <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] font-serif tracking-tight leading-tight">
-                  {competitiveSection.title}
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-700 mt-0.5">
-                  {competitiveSection.subtitle}
-                </p>
-              </div>
-            </div>
-
-            <Link
-              to={competitiveSection.buttonLink || '/competitive-exams'}
-              className="inline-flex items-center gap-1.5 bg-[#1976D2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-bold px-3 sm:px-5 py-3 sm:py-2.5 rounded-full shadow-sm hover:shadow transition-all shrink-0"
-            >
-              <span>{competitiveSection.buttonText || 'View All'}</span>
-              <ArrowRight className="w-4 h-4 ml-0.5" />
-            </Link>
-          </div>
-
-          {/* 11 Colorful Tiles: Rows 1 & 2 (4 cols) and Row 3 (3 cols) */}
-          <div className="space-y-3 sm:space-y-4">
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4">
-              {competitiveSection.tiles.slice(0, 8).map((tile, idx) => (
-                <Link
-                  key={idx}
-                  to={tile.path || '/competitive-exams'}
-                  className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
-                >
-                  <span className="font-bold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
-                    {tile.name}
-                  </span>
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
-                    <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Row 3: 3 items spread across 3 equal columns */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {competitiveSection.tiles.slice(8, 11).map((tile, idx) => (
-                <Link
-                  key={idx + 8}
-                  to={tile.path || '/competitive-exams'}
-                  className={`bg-gradient-to-r ${tile.bg} text-white px-4 py-3 sm:py-3.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-between group min-h-[54px]`}
-                >
-                  <span className="font-extrabold text-sm sm:text-base tracking-wide text-white drop-shadow-xs">
-                    {tile.name}
-                  </span>
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white flex items-center justify-center shrink-0 shadow-xs group-hover:translate-x-0.5 transition-transform">
-                    <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3] ${tile.arrowColor || 'text-[#1976D2]'}`} />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          4. ALL ENTRANCE EXAMS COACHING SECTION (MATCHING REFERENCE UI)
-      ======================================================== */}
-      <EntranceExamsSection />
-
-      {/* ========================================================
-          5. 4 QUICK ACTION HUBS (2x2 GRID MATCHING REFERENCE)
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-4">
-          {/* Card 1: Classes */}
-          <Link
-            to="/online-classes"
-            className="bg-gradient-to-r from-[#1976D2] to-[#0D47A1] text-white p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3.5 sm:gap-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                <MonitorPlay className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  Classes
-                </h3>
-                <p className="text-xs sm:text-sm font-medium text-white/90 mt-0.5">
-                  Live & Recorded Learning
-                </p>
-              </div>
-            </div>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/25 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
-              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
-            </div>
-          </Link>
-
-          {/* Card 2: Exams */}
-          <Link
-            to="/mock-tests"
-            className="bg-gradient-to-r from-[#00897B] to-[#00695C] text-white p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                <FileCheck2 className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  Exams
-                </h3>
-                <p className="text-xs sm:text-sm font-medium text-white/90 mt-0.5">
-                  Online Tests & Mock Tests
-                </p>
-              </div>
-            </div>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/25 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform">
-              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
-            </div>
-          </Link>
-
-          {/* Card 3: Enquiry */}
-          <Link
-            to="/enquiry"
-            className="bg-[#FCE4EC] border border-[#F8BBD0] text-[#0B1E3D] p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#C2185B] flex items-center justify-center shrink-0 shadow-xs text-white">
-                <MessageSquareQuote className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black text-[#C2185B] leading-tight">
-                  Material
-                </h3>
-                <p className="text-xs sm:text-sm font-medium text-[#880E4F]/85 mt-0.5">
-                  Get the Material
-                </p>
-              </div>
-            </div>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#C2185B] flex items-center justify-center shrink-0 text-white shadow-xs group-hover:translate-x-1 transition-transform">
-              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
-            </div>
-          </Link>
-
-          {/* Card 4: Enroll Now */}
-          <Link
-            to="/bankers-path"
-            className="bg-[#FFE082] border border-[#FFD54F] text-[#0B1E3D] p-2 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FFA000] flex items-center justify-center shrink-0 shadow-xs text-[#0B1E3D]">
-                <Users className="w-5 h-5 text-[#0B1E3D]" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black text-[#0B1E3D] leading-tight">
-                  Enroll Now
-                </h3>
-                <p className="text-xs sm:text-sm font-medium text-[#78350F]/85 mt-0.5">
-                  Start Your Learning Journey
-                </p>
-              </div>
-            </div>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFA000] flex items-center justify-center shrink-0 text-white shadow-xs group-hover:translate-x-1 transition-transform">
-              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* ========================================================
-          5. INTERACTIVE LIVE ZOOM CLASSROOM CALLOUT
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-gradient-to-r from-[#0B1E3D] via-[#12356B] to-[#1769D2] text-white rounded-3xl p-6 sm:p-10 shadow-xl overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-            <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-2 bg-[#F4B942] text-[#0B1E3D] px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-                <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
-                <span>Daily Evening Live Classes</span>
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black font-heading leading-tight">
-                {zoomInfo.headline}
-              </h2>
-
-              <p className="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
-                {zoomInfo.description}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-white/90">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15">
-                  <Clock className="w-4 h-4 text-[#F4B942]" />
-                  <span>{zoomInfo.schedule}</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15">
-                  <Laptop className="w-4 h-4 text-[#F4B942]" />
-                  <span>Interactive High-Definition Zoom</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-4 flex flex-col items-center lg:items-end justify-center gap-3">
-              <Link
-                to="/online-classes"
-                className="w-full sm:w-auto text-center bg-[#F4B942] hover:bg-amber-300 text-[#0B1E3D] font-black px-7 py-3.5 rounded-xl text-sm shadow-lg shadow-amber-400/20 transition-all hover:scale-105"
-              >
-                Join Live Batch Today
-              </Link>
-              <Link
-                to="/enquiry"
-                className="w-full sm:w-auto text-center bg-white/15 hover:bg-white/25 text-white font-bold px-6 py-2.5 rounded-xl text-xs border border-white/20 backdrop-blur-md"
-              >
-                Request Free Live Demo Pass
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          6. FEATURED COURSES PROGRAM CATALOGUE
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#1769D2] uppercase tracking-wider mb-1">
-              <BookOpen className="w-4 h-4" /> Comprehensive Programs
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading">
-              Featured Coaching Programs & Batches
-            </h2>
-          </div>
-
-          {/* Division Filter Tabs */}
-          <div className="flex items-center p-1 bg-slate-200/80 rounded-2xl text-xs font-bold self-start sm:self-auto">
-            <button
-              onClick={() => setActiveTab('ALL')}
-              className={`px-4 py-2 rounded-xl transition-all ${
-                activeTab === 'ALL'
-                  ? 'bg-white text-[#0B1E3D] shadow-xs'
-                  : 'text-slate-600 hover:text-[#0B1E3D]'
-              }`}
-            >
-              All Courses
-            </button>
-            <button
-              onClick={() => setActiveTab('BANKERS')}
-              className={`px-4 py-2 rounded-xl transition-all ${
-                activeTab === 'BANKERS'
-                  ? 'bg-[#12356B] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-[#0B1E3D]'
-              }`}
-            >
-              Banker's Path
-            </button>
-            <button
-              onClick={() => setActiveTab('COMPETITIVE')}
-              className={`px-4 py-2 rounded-xl transition-all ${
-                activeTab === 'COMPETITIVE'
-                  ? 'bg-[#12356B] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-[#0B1E3D]'
-              }`}
-            >
-              Competitive Exams
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Course Grid */}
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="w-8 h-8 border-4 border-[#1769D2] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-xs text-slate-500 font-bold">Loading courses catalogue...</p>
-          </div>
-        ) : filteredDisplayCourses.length === 0 ? (
-          <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center text-slate-500 text-xs">
-            No courses found in this category.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDisplayCourses.map((course) => (
-              <CourseCard key={course._id} course={course} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ========================================================
-          7. MODEL MOCK TESTS SHOWCASE
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-            <div>
-              <span className="text-xs font-black text-[#1769D2] uppercase tracking-wider">
-                Exam-Simulation Lab
+          {selectedState !== 'All India' && (
+            <div className="flex items-center justify-between pt-1 text-xs">
+              <span className="text-[#1769D2] font-bold">
+                Filtered by: <u>{selectedState}</u>
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading mt-1">
-                {modelTestInfo.headline}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl font-normal">
-                {modelTestInfo.description}
-              </p>
+              <button
+                onClick={() => setSelectedState('All India')}
+                className="inline-flex items-center gap-1 text-rose-600 font-bold hover:underline"
+              >
+                <RotateCcw className="w-3 h-3" /> Reset Filter
+              </button>
             </div>
-
-            <Link
-              to="/mock-tests"
-              className="inline-flex items-center gap-2 bg-[#12356B] hover:bg-[#0e2a56] text-white text-xs font-black px-5 py-3 rounded-xl shadow-md transition-all self-start sm:self-auto"
-            >
-              Explore All Mock Tests <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <ClipboardList className="w-6 h-6 text-[#1769D2]" />
-              <h4 className="font-extrabold text-xs text-[#0B1E3D]">Exact IIBF & IBPS Interface</h4>
-              <p className="text-[11px] text-slate-600">
-                Familiarize with the real exam screen palette, question navigation, and timer constraints.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <Zap className="w-6 h-6 text-amber-500" />
-              <h4 className="font-extrabold text-xs text-[#0B1E3D]">Instant AI Scorecard</h4>
-              <p className="text-[11px] text-slate-600">
-                Detailed sectional analytics, negative mark calculation, percentile rank, and speed breakdown.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-              <h4 className="font-extrabold text-xs text-[#0B1E3D]">Comprehensive Explanations</h4>
-              <p className="text-[11px] text-slate-600">
-                Step-by-step solved rationales for every single question prepared by subject matter experts.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <Award className="w-6 h-6 text-purple-600" />
-              <h4 className="font-extrabold text-xs text-[#0B1E3D]">All-India Rank Benchmarking</h4>
-              <p className="text-[11px] text-slate-600">
-                Compare your readiness against thousands of active bankers and competitive aspirants nationwide.
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
       {/* ========================================================
-          8. 6-STEP CAREER ROADMAP (DYNAMIC)
+          2. OUR COACHING PROGRAMS (3 DISTINCT CARDS WITH 4x2 TILES)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="text-center max-w-3xl mx-auto space-y-2">
-          <span className="text-xs font-black text-[#1769D2] uppercase tracking-wider">
-            Structured Learning Path
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading">
-            Your 6-Step Milestone Roadmap to Success
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
+        {/* Section Heading */}
+        <div className="space-y-1">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight">
+            Our Coaching Programs
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600">
-            A proven, battle-tested methodology followed by over 25,000 successful bank officers and exam toppers.
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Choose your desired path and start preparing for bank, government, or entrance examinations.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.isArray(roadmapSteps) &&
-            roadmapSteps.map((step, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-lg transition-all relative overflow-hidden"
-            >
-              <div className="text-4xl font-black text-slate-100 absolute top-4 right-4 select-none">
-                0{idx + 1}
-              </div>
-              <div className="relative z-10 space-y-2">
-                <span className="w-8 h-8 rounded-xl bg-blue-100 text-[#12356B] font-black text-xs inline-flex items-center justify-center">
-                  {idx + 1}
-                </span>
-                <h3 className="text-base font-extrabold text-[#0B1E3D] font-heading">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* Floating Learning Platform Side Pill */}
+        <Link
+          to="/student"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#0B2545] hover:bg-[#12356B] text-white px-3 py-2 rounded-l-xl shadow-2xl flex items-center gap-1.5 transition-all duration-200 border-y border-l border-white/20 group hover:pr-4"
+          title="Open Learning Platform"
+        >
+          <span className="text-sm">🎓</span>
+          <span className="text-xs font-black tracking-wide text-white">
+            Learning Platform
+          </span>
+        </Link>
 
-      {/* ========================================================
-          9. DISTINGUISHED FACULTY SHOWCASE (DYNAMIC DATABASE QUERY)
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <span className="text-xs font-black text-[#1769D2] uppercase tracking-wider">
-              Academic Mentors
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading mt-1">
-              Learn from India's Premier Banking Educators
-            </h2>
+        {/* ---------------- CARD 1: BANKER'S PATH ---------------- */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
+                Banker's Path
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                Banking • Insurance • Finance
+              </p>
+            </div>
+            <Link
+              to="/bankers-path"
+              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+            >
+              View All
+            </Link>
           </div>
 
+          {/* 4 columns x 2 rows Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(bankersCourses.length >= 8
+              ? expandedSection.bankers
+                ? bankersCourses
+                : bankersCourses.slice(0, 8)
+              : defaultBankersTiles
+            ).map((course, idx) => {
+              const shortName = course.slug ? getTileShortName(course) : course.name;
+              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
+              const color = course.tileColor || course.color || '#008080';
+              const slug = course.slug || defaultBankersTiles[idx % 8]?.slug;
+
+              return (
+                <Link
+                  key={course._id || idx}
+                  to={`/courses/${slug}`}
+                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  style={{ backgroundColor: color }}
+                  title={course.title || course.name}
+                >
+                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                    {shortName}
+                  </div>
+                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                    {subtitle}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {bankersCourses.length > 8 && (
+            <div className="text-center pt-1">
+              <button
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
+                }
+                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+              >
+                {expandedSection.bankers ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({bankersCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ---------------- CARD 2: COMPETITIVE EXAMS ---------------- */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
+                Competitive Exams
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                Government Jobs • Banking • Railways • Defence & More
+              </p>
+            </div>
+            <Link
+              to="/competitive-exams"
+              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+            >
+              View All
+            </Link>
+          </div>
+
+          {/* 4 columns x 2 rows Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(competitiveCourses.length >= 8
+              ? expandedSection.competitive
+                ? competitiveCourses
+                : competitiveCourses.slice(0, 8)
+              : defaultCompetitiveTiles
+            ).map((course, idx) => {
+              const shortName = course.slug ? getTileShortName(course) : course.name;
+              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
+              const color = course.tileColor || course.color || '#7A1D5A';
+              const slug = course.slug || defaultCompetitiveTiles[idx % 8]?.slug;
+
+              return (
+                <Link
+                  key={course._id || idx}
+                  to={`/courses/${slug}`}
+                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  style={{ backgroundColor: color }}
+                  title={course.title || course.name}
+                >
+                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                    {shortName}
+                  </div>
+                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                    {subtitle}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {competitiveCourses.length > 8 && (
+            <div className="text-center pt-1">
+              <button
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
+                }
+                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+              >
+                {expandedSection.competitive ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({competitiveCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ---------------- CARD 3: ENTRANCE EXAMS ---------------- */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-[#0B2545] font-serif">
+                Entrance Exams
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                Engineering • Medical • Central Universities & State CETs
+              </p>
+            </div>
+            <Link
+              to="/entrance-exams"
+              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+            >
+              View All
+            </Link>
+          </div>
+
+          {/* 4 columns x 2 rows Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(entranceCourses.length >= 8
+              ? expandedSection.entrance
+                ? entranceCourses
+                : entranceCourses.slice(0, 8)
+              : defaultEntranceTiles
+            ).map((course, idx) => {
+              const shortName = course.slug ? getTileShortName(course) : course.name;
+              const subtitle = course.tileSubtitle || course.subtitle || course.shortDescription;
+              const color = course.tileColor || course.color || '#48631E';
+              const slug = course.slug || defaultEntranceTiles[idx % 8]?.slug;
+
+              return (
+                <Link
+                  key={course._id || idx}
+                  to={`/courses/${slug}`}
+                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  style={{ backgroundColor: color }}
+                  title={course.title || course.name}
+                >
+                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                    {shortName}
+                  </div>
+                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                    {subtitle}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {entranceCourses.length > 8 && (
+            <div className="text-center pt-1">
+              <button
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
+                }
+                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+              >
+                {expandedSection.entrance ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({entranceCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ========================================================
+          3. 4 ACTION CARDS (2x2 GRID MATCHING REFERENCE UI)
+      ======================================================== */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          {/* Card 1: Enquiry & Demo (Blue) */}
           <Link
-            to="/faculty"
-            className="inline-flex items-center gap-1.5 text-xs font-black text-[#1769D2] hover:text-[#12356B] bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-xs"
+            to="/enquiry"
+            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            style={{ backgroundColor: '#0080FF' }}
           >
-            View All Faculty Mentors <ChevronRight className="w-4 h-4" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
+                  Enquiry & Demo
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                  Join our free demo classes
+                </p>
+              </div>
+            </div>
+            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight className="w-3 h-3 text-white" />
+            </div>
+          </Link>
+
+          {/* Card 2: Materials (Orange) */}
+          <Link
+            to="/recorded-classes"
+            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            style={{ backgroundColor: '#FF8C00' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
+                  Materials
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                  Get study notes
+                </p>
+              </div>
+            </div>
+            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight className="w-3 h-3 text-white" />
+            </div>
+          </Link>
+
+          {/* Card 3: Classes (Green) */}
+          <Link
+            to="/online-classes"
+            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            style={{ backgroundColor: '#00C853' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <MonitorPlay className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
+                  Classes
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                  Live & Recorded
+                </p>
+              </div>
+            </div>
+            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight className="w-3 h-3 text-white" />
+            </div>
+          </Link>
+
+          {/* Card 4: Exams (Purple) */}
+          <Link
+            to="/mock-tests"
+            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            style={{ backgroundColor: '#9B51E0' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
+                  Exams
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                  Mock tests & Online tests
+                </p>
+              </div>
+            </div>
+            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight className="w-3 h-3 text-white" />
+            </div>
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Array.isArray(displayFaculty) &&
-            displayFaculty.map((member, idx) => (
-            <div
-              key={member._id || idx}
-              className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group card-hover-effect"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  {member.photo ? (
-                    <img
-                      src={member.photo}
-                      alt={member.name}
-                      className="w-16 h-16 rounded-2xl object-cover border-2 border-blue-200 shadow-sm group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#12356B] to-[#1769D2] text-white flex items-center justify-center font-extrabold text-xl shadow-md">
-                      {member.name?.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-base font-extrabold text-[#0B1E3D] font-heading">
-                      {member.name}
-                    </h3>
-                    <p className="text-xs text-[#1769D2] font-bold">{member.designation}</p>
-                    <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                      {member.experience || `${member.experienceYears || 12}+ Yrs Experience`}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100">
-                  {member.specialization || member.bio || 'Specialist mentor in banking regulations and numerical shortcuts.'}
-                </p>
-              </div>
-
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span className="flex items-center gap-1 font-bold text-emerald-700">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Mentor
-                </span>
-                <span className="font-extrabold text-amber-500 flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {member.rating || 4.9}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* ========================================================
-          10. STUDENT SUCCESS STORIES (DYNAMIC REVIEWS)
+          4. "LEARN WITH A CLEAR PLAN" (EXACT MATCH TO REFERENCE)
       ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="text-center max-w-3xl mx-auto space-y-2">
-          <span className="text-xs font-black text-[#1769D2] uppercase tracking-wider">
-            Verified Results
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading">
-            Voices of Cleared Officers & Toppers
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Array.isArray(testimonialsList) &&
-            testimonialsList.map((t, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-3">
-                <Quote className="w-7 h-7 text-blue-200" />
-                <p className="text-xs text-slate-700 leading-relaxed italic">
-                  "{t.quote}"
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center gap-3.5">
-                {t.image ? (
-                  <img
-                    src={t.image}
-                    alt={t.name}
-                    className="w-11 h-11 rounded-full object-cover border border-slate-200"
-                  />
-                ) : (
-                  <div className="w-11 h-11 rounded-full bg-blue-100 text-[#12356B] flex items-center justify-center font-bold text-xs">
-                    {t.name.split(' ').map((n) => n[0]).join('')}
-                  </div>
-                )}
-                <div>
-                  <h4 className="text-xs font-extrabold text-[#0B1E3D]">{t.name}</h4>
-                  <p className="text-[11px] font-bold text-[#1769D2]">{t.exam}</p>
-                  <span className="text-[10px] text-slate-500">{t.designation}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================
-          11. FAQS SECTION (DYNAMIC)
-      ======================================================== */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="text-center space-y-2">
-          <span className="text-xs font-black text-[#1769D2] uppercase tracking-wider">
-            Help & Guidance
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0B1E3D] font-heading">
-            Frequently Asked Questions
-          </h2>
-        </div>
-
-        <div className="space-y-3">
-          {Array.isArray(faqsList) &&
-            faqsList.map((faq, idx) => (
-            <details
-              key={idx}
-              className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs group cursor-pointer"
-            >
-              <summary className="font-extrabold text-xs sm:text-sm text-[#0B1E3D] flex items-center justify-between list-none">
-                <span>{faq.question}</span>
-                <ChevronRight className="w-4 h-4 text-[#1769D2] group-open:rotate-90 transition-transform shrink-0 ml-2" />
-              </summary>
-              <p className="text-xs text-slate-600 leading-relaxed mt-3 pt-3 border-t border-slate-100 font-medium">
-                {faq.answer}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+          {/* Header with floating graduation cap badge */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                PREPARE WITH STRUCTURED METHODOLOGY
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight mt-0.5">
+                Learn with a Clear Plan
+              </h2>
+              <p className="text-xs text-slate-600 leading-relaxed mt-1">
+                Follow our proven, step-by-step methodology to crack your exams with confidence.
               </p>
-            </details>
-          ))}
-        </div>
-      </section>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-[#0B2545] to-[#1976D2] text-[#F4B942] flex items-center justify-center shrink-0 shadow-md">
+              <GraduationCap className="w-6 h-6 text-[#F4B942]" />
+            </div>
+          </div>
 
-      {/* ========================================================
-          12. FINAL HIGH-CONVERTING CTA BANNER
-      ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-[#0B1E3D] via-[#12356B] to-[#1769D2] text-white rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-1/3 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="relative z-10 max-w-3xl mx-auto space-y-3">
-            <span className="text-xs font-black text-[#F4B942] uppercase tracking-widest">
-              Ready to Achieve Your Next Career Milestone?
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black font-heading leading-tight">
-              Join Ranvi Institutions Today & Start Your Guided Preparation
-            </h2>
-            <p className="text-xs sm:text-sm text-blue-100 max-w-xl mx-auto">
-              Get immediate access to daily live Zoom classes, recorded video bank, chapter notes, and exam-pattern mock tests.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          {/* 4 Feature Cards (2x2 Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {/* Card 1: Daily Planner */}
+            <div className="p-4 rounded-xl bg-[#EBF5FB] border border-[#D4EBF8] space-y-2 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#0070F3] flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-[#0070F3]" />
+                </div>
+                <h4 className="font-extrabold text-sm text-[#0B2545]">Daily Planner</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Structured daily schedule to cover complete syllabus on time.
+                </p>
+              </div>
               <Link
-                to="/register"
-                className="bg-[#F4B942] hover:bg-amber-300 text-[#0B1E3D] font-black px-8 py-3.5 rounded-xl text-sm sm:text-base shadow-lg shadow-amber-400/20 transition-all hover:scale-105"
+                to="/recorded-classes"
+                className="text-[11px] font-black text-[#0070F3] hover:underline inline-flex items-center gap-1 pt-1"
               >
-                Enroll Now
+                VIEW SYLLABUS →
               </Link>
+            </div>
+
+            {/* Card 2: Classes */}
+            <div className="p-4 rounded-xl bg-[#EAF9F1] border border-[#D1F2DF] space-y-2 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-[#00A86B] flex items-center justify-center">
+                  <MonitorPlay className="w-4 h-4 text-[#00A86B]" />
+                </div>
+                <h4 className="font-extrabold text-sm text-[#0B2545]">Classes</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Interactive live & high quality recorded video lectures.
+                </p>
+              </div>
               <Link
-                to="/enquiry"
-                className="bg-white/15 hover:bg-white/25 text-white font-bold px-7 py-3.5 rounded-xl text-sm sm:text-base border border-white/20 backdrop-blur-md transition-all"
+                to="/online-classes"
+                className="text-[11px] font-black text-[#00A86B] hover:underline inline-flex items-center gap-1 pt-1"
               >
-                Book a Free Demo Session
+                EXPLORE CLASSES →
               </Link>
+            </div>
+
+            {/* Card 3: Practice Exams */}
+            <div className="p-4 rounded-xl bg-[#F6EEFD] border border-[#E9D5FA] space-y-2 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-[#8A2BE2] flex items-center justify-center">
+                  <ClipboardList className="w-4 h-4 text-[#8A2BE2]" />
+                </div>
+                <h4 className="font-extrabold text-sm text-[#0B2545]">Practice Exams</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Chapter-wise quizzes and full-length online mock tests.
+                </p>
+              </div>
+              <Link
+                to="/mock-tests"
+                className="text-[11px] font-black text-[#8A2BE2] hover:underline inline-flex items-center gap-1 pt-1"
+              >
+                ATTEMPT MOCK TEST →
+              </Link>
+            </div>
+
+            {/* Card 4: Expert Guidance */}
+            <div className="p-4 rounded-xl bg-[#FFF8EC] border border-[#FEE7C3] space-y-2 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#D97706] flex items-center justify-center">
+                  <Users className="w-4 h-4 text-[#D97706]" />
+                </div>
+                <h4 className="font-extrabold text-sm text-[#0B2545]">Expert Guidance</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Doubt sessions and personal mentoring by retired bankers & rankers.
+                </p>
+              </div>
+              <Link
+                to="/faculty"
+                className="text-[11px] font-black text-[#D97706] hover:underline inline-flex items-center gap-1 pt-1"
+              >
+                MEET OUR FACULTY →
+              </Link>
+            </div>
+          </div>
+
+          {/* 3 Step-by-Step Roadmap items */}
+          <div className="pt-2 space-y-2">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
+                01
+              </span>
+              <div>
+                <h5 className="font-bold text-xs text-[#0B2545]">Enroll in your course</h5>
+                <p className="text-[10px] text-slate-500">Get instant access to study material & video lectures.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
+                02
+              </span>
+              <div>
+                <h5 className="font-bold text-xs text-[#0B2545]">Learn & Practice</h5>
+                <p className="text-[10px] text-slate-500">Join daily live classes & take chapter-wise mock tests.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="w-7 h-7 rounded-full bg-blue-100 text-[#1769D2] font-black text-xs flex items-center justify-center shrink-0">
+                03
+              </span>
+              <div>
+                <h5 className="font-bold text-xs text-[#0B2545]">Crack Exam & Reach Goal</h5>
+                <p className="text-[10px] text-slate-500">Achieve top ranks with continuous guidance & analysis.</p>
+              </div>
             </div>
           </div>
         </div>

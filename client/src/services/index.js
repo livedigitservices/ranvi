@@ -9,6 +9,60 @@ export const courseService = {
   getCategories: async (params = {}) => {
     return api.get('/courses/categories', { params });
   },
+  getAvailableStates: async () => {
+    try {
+      const res = await api.get('/courses/states');
+      if (res && res.success && Array.isArray(res.data)) {
+        return res;
+      }
+      return {
+        success: true,
+        data: [
+          'All India',
+          'Andhra Pradesh',
+          'Telangana',
+          'Karnataka',
+          'Tamil Nadu',
+          'Maharashtra',
+          'Delhi',
+          'Uttar Pradesh',
+          'Kerala',
+          'Bihar',
+          'West Bengal',
+          'Gujarat',
+          'Rajasthan',
+          'Madhya Pradesh',
+          'Punjab',
+          'Haryana',
+          'Odisha',
+        ],
+      };
+    } catch (err) {
+      // Graceful fallback when remote backend does not have /states route deployed yet
+      return {
+        success: true,
+        data: [
+          'All India',
+          'Andhra Pradesh',
+          'Telangana',
+          'Karnataka',
+          'Tamil Nadu',
+          'Maharashtra',
+          'Delhi',
+          'Uttar Pradesh',
+          'Kerala',
+          'Bihar',
+          'West Bengal',
+          'Gujarat',
+          'Rajasthan',
+          'Madhya Pradesh',
+          'Punjab',
+          'Haryana',
+          'Odisha',
+        ],
+      };
+    }
+  },
   getCourseBySlug: async (slug) => {
     return api.get(`/courses/${slug}`);
   },

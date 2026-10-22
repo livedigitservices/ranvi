@@ -25,12 +25,42 @@ export const AdminCourseFormPage = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [customStateInput, setCustomStateInput] = useState('');
+
+  const availableStatePresets = [
+    'All India',
+    'Andhra Pradesh',
+    'Telangana',
+    'Karnataka',
+    'Tamil Nadu',
+    'Maharashtra',
+    'Delhi',
+    'Uttar Pradesh',
+    'Kerala',
+    'Bihar',
+    'West Bengal',
+  ];
+
+  const colorPresets = [
+    { label: 'Teal', hex: '#007B88' },
+    { label: 'Plum', hex: '#7A1D5A' },
+    { label: 'Olive', hex: '#48631E' },
+    { label: 'Orange', hex: '#B94715' },
+    { label: 'Slate Blue', hex: '#2D5482' },
+    { label: 'Brick Red', hex: '#96372B' },
+    { label: 'Dark Teal', hex: '#22636B' },
+    { label: 'Purple', hex: '#512D6D' },
+  ];
 
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     division: 'BANKERS_PATH',
     categoryId: '',
+    states: ['All India'],
+    tileSubtitle: '',
+    tileColor: '#007B88',
+    displayOrder: 1,
     shortDescription: '',
     fullDescription: '',
     fee: 3999,
@@ -44,9 +74,9 @@ export const AdminCourseFormPage = () => {
     thumbnail: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=800&auto=format&fit=crop',
     syllabus: [
       {
-        title: 'Paper 1: Indian Economy & Financial System',
-        description: 'Comprehensive coverage of macroeconomics and financial architecture',
-        topics: ['Economic Planning in India', 'Monetary Policy & Fiscal Policy', 'Regulatory Framework of Banks'],
+        title: 'Paper 1: Core Concepts & Fundamentals',
+        description: 'Comprehensive coverage of core curriculum and syllabus topics',
+        topics: ['Topic 1', 'Topic 2'],
       },
     ],
   });
@@ -68,6 +98,10 @@ export const AdminCourseFormPage = () => {
               slug: c.slug || '',
               division: c.division || 'BANKERS_PATH',
               categoryId: c.categoryId?._id || c.categoryId || '',
+              states: Array.isArray(c.states) && c.states.length > 0 ? c.states : ['All India'],
+              tileSubtitle: c.tileSubtitle || '',
+              tileColor: c.tileColor || '#007B88',
+              displayOrder: c.displayOrder || 1,
               shortDescription: c.shortDescription || '',
               fullDescription: c.fullDescription || '',
               fee: c.fee || 0,
@@ -96,6 +130,29 @@ export const AdminCourseFormPage = () => {
     };
     initData();
   }, [courseId, isEditMode]);
+
+  const toggleState = (st) => {
+    setFormData((prev) => {
+      const current = prev.states || [];
+      if (current.includes(st)) {
+        const next = current.filter((s) => s !== st);
+        return { ...prev, states: next.length > 0 ? next : ['All India'] };
+      } else {
+        return { ...prev, states: [...current, st] };
+      }
+    });
+  };
+
+  const handleAddCustomState = () => {
+    const trimmed = customStateInput.trim();
+    if (trimmed && !(formData.states || []).includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        states: [...(prev.states || []), trimmed],
+      }));
+      setCustomStateInput('');
+    }
+  };
 
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -229,7 +286,178 @@ export const AdminCourseFormPage = () => {
               >
                 <option value="BANKERS_PATH">Banker's Path</option>
                 <option value="COMPETITIVE_EXAMS">Competitive Exams</option>
+                <option value="ENTRANCE_EXAMS">Entrance Exams</option>
               </select>
+            </div>
+          </div>
+
+          {/* Homepage Card Presentation & Tile Styling */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-black uppercase text-[#12356B] tracking-wider">
+                  Homepage Program Tile Appearance
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Custom subtitle, tile background color, and display ordering on the homepage cards.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#1769D2]">
+                Order #{formData.displayOrder}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tile Subtitle (Homepage)</label>
+                <input
+                  type="text"
+                  value={formData.tileSubtitle}
+                  onChange={(e) => setFormData({ ...formData, tileSubtitle: e.target.value })}
+                  placeholder="e.g. Master Certification Batch"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Display Order (1–8)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={formData.displayOrder}
+                  onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tile Color (Hex)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={formData.tileColor || '#007B88'}
+                    onChange={(e) => setFormData({ ...formData, tileColor: e.target.value })}
+                    className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.tileColor}
+                    onChange={(e) => setFormData({ ...formData, tileColor: e.target.value })}
+                    placeholder="#007B88"
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick color preset chips */}
+            <div>
+              <span className="block text-[11px] font-bold text-slate-500 mb-1.5">Preset Reference Palette:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {colorPresets.map((c) => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, tileColor: c.hex })}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                      formData.tileColor === c.hex
+                        ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.hex }}></span>
+                    {c.label} ({c.hex})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tile Preview */}
+            <div className="pt-2 border-t border-slate-200/80">
+              <span className="block text-[11px] font-bold text-slate-500 mb-1.5">Homepage Tile Preview:</span>
+              <div
+                className="max-w-xs p-3.5 rounded-xl text-white shadow-md transition-transform flex items-center justify-between"
+                style={{ backgroundColor: formData.tileColor || '#007B88' }}
+              >
+                <div>
+                  <div className="font-black text-sm uppercase tracking-wide">
+                    {formData.title?.split(' ')[0] || 'COURSE'}
+                  </div>
+                  <div className="text-[11px] text-white/90 font-medium">
+                    {formData.tileSubtitle || 'Short program subtitle'}
+                  </div>
+                </div>
+                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
+                  →
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* State Association & Filtering Configuration */}
+          <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/60 space-y-3">
+            <div>
+              <h4 className="text-xs font-black uppercase text-[#12356B] tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#1769D2]"></span>
+                Target State(s) Association
+              </h4>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Select one or multiple states where this course applies. Courses tagged with <b>"All India"</b> appear across all state searches.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {availableStatePresets.map((st) => {
+                const isSelected = (formData.states || []).includes(st);
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => toggleState(st)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                      isSelected
+                        ? 'bg-[#12356B] text-white border-[#12356B] shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {isSelected ? '✓ ' : '+ '}{st}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom state adder */}
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="text"
+                value={customStateInput}
+                onChange={(e) => setCustomStateInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCustomState();
+                  }
+                }}
+                placeholder="Type another state / UT (e.g. Rajasthan, Odisha)..."
+                className="flex-1 max-w-sm px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-medium"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomState}
+                className="px-3.5 py-2 rounded-xl bg-[#1769D2] hover:bg-[#1257b0] text-white text-xs font-bold transition-colors"
+              >
+                Add State
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-500 font-medium">
+              Currently Associated States:{' '}
+              <span className="font-bold text-[#12356B]">
+                {formData.states && formData.states.length > 0
+                  ? formData.states.join(', ')
+                  : 'All India'}
+              </span>
             </div>
           </div>
 

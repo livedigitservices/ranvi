@@ -76,7 +76,6 @@ export const Navbar = () => {
     { name: 'Online Classes', path: '/online-classes' },
     { name: 'Recorded Classes', path: '/recorded-classes' },
     { name: 'Mock Tests', path: '/mock-tests' },
-    { name: 'Faculty', path: '/faculty' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -207,15 +206,6 @@ export const Navbar = () => {
 
           {/* 4. Right Section: CTAs + Dynamic User Profile / Skeleton Avatar */}
           <div className="flex items-center gap-2.5 sm:gap-3 z-20" ref={profileRef}>
-            {/* Desktop Enquire CTA */}
-            <Link
-              to="/enquiry"
-              className="hidden lg:inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#12356B] bg-[#EAF3FF] hover:bg-[#d5e7ff] border border-[#1769D2]/25 px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs active:scale-95"
-            >
-              <Sparkles className="w-4 h-4 text-[#1769D2]" />
-              Enquire Now
-            </Link>
-
             {/* Profile Section: Dynamic (Logged In) OR Skeleton Avatar (Logged Out) */}
             {isAuthenticated ? (
               /* ========================================================

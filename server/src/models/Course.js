@@ -29,8 +29,26 @@ const CourseSchema = new mongoose.Schema({
   },
   division: {
     type: String,
-    enum: ['BANKERS_PATH', 'COMPETITIVE_EXAMS'],
+    enum: ['BANKERS_PATH', 'COMPETITIVE_EXAMS', 'ENTRANCE_EXAMS'],
     required: true,
+  },
+  states: {
+    type: [String],
+    default: ['All India'],
+  },
+  tileSubtitle: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  tileColor: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  displayOrder: {
+    type: Number,
+    default: 0,
   },
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -119,6 +137,8 @@ const CourseSchema = new mongoose.Schema({
 });
 
 CourseSchema.index({ division: 1, categoryId: 1, isPublished: 1 });
+CourseSchema.index({ states: 1 });
 CourseSchema.index({ isFeatured: 1 });
+CourseSchema.index({ displayOrder: 1 });
 
 module.exports = mongoose.model('Course', CourseSchema);

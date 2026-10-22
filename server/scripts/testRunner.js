@@ -231,6 +231,41 @@ const runTests = async () => {
     const deletedCheck = await EntranceExam.findById(customExam._id);
     assert(deletedCheck === null, 'Admin can delete entrance exam program');
 
+    // 12. Test Flagship Courses & State-Based Course Filtering
+    const totalCourses = await Course.countDocuments({ isPublished: true });
+    assert(totalCourses >= 24, `All 24 flagship courses exist in database (found: ${totalCourses})`);
+
+    const bankersCourses = await Course.find({ division: 'BANKERS_PATH', isPublished: true });
+    assert(bankersCourses.length >= 8, `Banker's Path has at least 8 flagship courses (found: ${bankersCourses.length})`);
+
+    const competitiveCourses = await Course.find({ division: 'COMPETITIVE_EXAMS', isPublished: true });
+    assert(competitiveCourses.length >= 8, `Competitive Exams has at least 8 flagship courses (found: ${competitiveCourses.length})`);
+
+    const entranceCourses = await Course.find({ division: 'ENTRANCE_EXAMS', isPublished: true });
+    assert(entranceCourses.length >= 8, `Entrance Exams has at least 8 flagship courses (found: ${entranceCourses.length})`);
+
+    // Verify course state filtering
+    const apCourses = await Course.find({
+      isPublished: true,
+      $or: [
+        { states: 'Andhra Pradesh' },
+        { states: 'All India' },
+        { states: { $size: 0 } },
+        { states: { $exists: false } },
+      ],
+    });
+    assert(apCourses.length > 0, `State filter for Andhra Pradesh returns matching courses (${apCourses.length})`);
+
+    const apEapcetCourse = await Course.findOne({ slug: 'ap-eapcet-engineering-agriculture' });
+    assert(
+      apEapcetCourse !== null && apEapcetCourse.states.includes('Andhra Pradesh'),
+      'AP EAPCET course is tagged with Andhra Pradesh'
+    );
+    assert(
+      apEapcetCourse !== null && apEapcetCourse.tileColor === '#B94715',
+      'AP EAPCET course has custom tile color #B94715'
+    );
+
     console.log('\n🧪 =======================================================');
     console.log(`🧪 TEST RESULTS: ${passedCount} PASSED, ${failedCount} FAILED`);
     console.log('🧪 =======================================================\n');
