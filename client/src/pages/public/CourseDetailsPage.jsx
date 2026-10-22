@@ -87,16 +87,35 @@ export const CourseDetailsPage = () => {
   return (
     <div className="pb-20 space-y-12">
       {/* Course Header Banner */}
-      <section className="bg-gradient-to-br from-[#12356B] via-[#17488B] to-[#1769D2] text-white py-12 px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-[#12356B] via-[#17488B] to-[#1769D2] text-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-4">
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center gap-2 text-xs text-blue-200">
+              <Link to="/" className="hover:text-white transition-colors">Home</Link>
+              <span>/</span>
+              <Link
+                to={course.division === 'BANKERS_PATH' ? '/bankers-path' : course.division === 'ENTRANCE_EXAMS' ? '/entrance-exams' : '/competitive-exams'}
+                className="hover:text-white transition-colors"
+              >
+                {course.division === 'BANKERS_PATH' ? "Banker's Path" : course.division === 'ENTRANCE_EXAMS' ? 'Entrance Exams' : 'Competitive Exams'}
+              </Link>
+              <span>/</span>
+              <span className="text-[#F4B942] font-bold truncate max-w-[180px] sm:max-w-xs">{course.title}</span>
+            </nav>
+
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-[#F4B942] text-[#12356B] text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-                {course.categoryId?.name || (isBankersPath ? "Banker's Path" : "Competitive Exams")}
+                {course.categoryId?.name || (course.division === 'BANKERS_PATH' ? "Banker's Path" : course.division === 'ENTRANCE_EXAMS' ? "Entrance Exams" : "Competitive Exams")}
               </span>
               <span className="bg-white/15 text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20">
                 {course.mode === 'BOTH' ? 'Online + Offline Batches' : `${course.mode} Mode`}
               </span>
+              {course.states && course.states.length > 0 && (
+                <span className="bg-emerald-400/20 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-400/30">
+                  📍 {course.states.join(', ')}
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-heading leading-tight">

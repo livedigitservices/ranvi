@@ -26,7 +26,7 @@ export const Footer = () => {
 
   return (
     <footer className="bg-[#040D1A] text-slate-200 border-t border-slate-800">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         {/* ========================================================
             1. TOP GRADUATION BANNER MATCHING REFERENCE IMAGE
         ======================================================== */}

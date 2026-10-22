@@ -107,6 +107,7 @@ export function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/bankers-path" element={<BankersPathPage />} />
                 <Route path="/competitive-exams" element={<CompetitiveExamsPage />} />
+                <Route path="/courses" element={<Navigate to="/bankers-path" replace />} />
                 <Route path="/courses/:slug" element={<CourseDetailsPage />} />
                 <Route path="/online-classes" element={<OnlineClassesPage />} />
                 <Route path="/recorded-classes" element={<RecordedClassesPage />} />

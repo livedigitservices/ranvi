@@ -14,13 +14,11 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronUp,
-  MapPin,
   RotateCcw,
   GraduationCap,
   FileText,
   ClipboardList,
   Mail,
-  Award,
 } from 'lucide-react';
 
 export const HomePage = () => {
@@ -55,7 +53,7 @@ export const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSliderHovered, setIsSliderHovered] = useState(false);
 
-  // Fetch available states
+  // Fetch available states with silent fallback
   useEffect(() => {
     const fetchStates = async () => {
       try {
@@ -64,7 +62,7 @@ export const HomePage = () => {
           setAvailableStates(res.data);
         }
       } catch (err) {
-        // Graceful fallback already in initial state
+        // Fallback pre-populated in initial state
       }
     };
     fetchStates();
@@ -87,15 +85,16 @@ export const HomePage = () => {
             ? res.data
             : [];
 
-          // Client-side filter guarantee if remote backend hasn't re-seeded with state filters yet
+          // Client-side filter guarantee if remote backend has not re-seeded with state filters yet
           if (selectedState && selectedState !== 'ALL' && selectedState !== 'All India') {
             const stateMatches = list.filter((c) => {
               if (!c.states || c.states.length === 0) return true;
-              return c.states.includes(selectedState) || c.states.includes('All India');
+              return (
+                c.states.some((s) => s.toLowerCase() === selectedState.toLowerCase()) ||
+                c.states.some((s) => s.toLowerCase() === 'all india')
+              );
             });
-            if (stateMatches.length > 0) {
-              list = stateMatches;
-            }
+            list = stateMatches;
           }
           setCourses(list);
         }
@@ -180,7 +179,7 @@ export const HomePage = () => {
   const competitiveCourses = courses.filter((c) => c.division === 'COMPETITIVE_EXAMS');
   const entranceCourses = courses.filter((c) => c.division === 'ENTRANCE_EXAMS');
 
-  // Exact fallback 8 tiles matching the reference image
+  // Exact fallback 8 tiles matching reference image
   const defaultBankersTiles = [
     { name: 'JAIIB', subtitle: 'Junior Associate of IIBF', color: '#008080', slug: 'jaiib-master-class-2026' },
     { name: 'CAIIB', subtitle: 'Certified Associate of IIBF', color: '#7A1D5A', slug: 'caiib-advanced-comprehensive-batch' },
@@ -249,7 +248,7 @@ export const HomePage = () => {
   const activeSlide = slides[currentSlide] || slides[0];
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-16 bg-[#F8FAFC]">
+    <div className="space-y-6 sm:space-y-8 pb-16 bg-[#F8FAFC] overflow-x-hidden">
       {/* ========================================================
           HERO BANNER: DYNAMIC SLIDING CAROUSEL (EXCEPT HERO)
       ======================================================== */}
@@ -276,7 +275,7 @@ export const HomePage = () => {
           ))}
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 pt-8 sm:pt-12 pb-10 sm:pb-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 pt-8 sm:pt-12 pb-10 sm:pb-14">
           <div className="max-w-xl text-left space-y-5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[#F4B942] text-[10px] sm:text-xs font-black tracking-wider uppercase">
               <Sparkles className="w-3.5 h-3.5" />
@@ -351,17 +350,31 @@ export const HomePage = () => {
             <button
               onClick={prevSlide}
               aria-label="Previous Slide"
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20 hover:bg-black/60 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next Slide"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-md border border-white/20 hover:bg-black/60 transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+            <div className="absolute bottom-11 sm:bottom-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full ${
+                    idx === currentSlide
+                      ? 'w-6 h-2 bg-[#F4B942]'
+                      : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
           </>
         )}
 
@@ -375,7 +388,7 @@ export const HomePage = () => {
       {/* ========================================================
           1. "SELECT YOUR STATE" CARD (EXACT MATCH TO REFERENCE)
       ======================================================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="bg-[#F0F7FF] rounded-2xl p-4 sm:p-6 border border-[#BEE3F8] shadow-xs space-y-3">
           <div>
             <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#1769D2] block">
@@ -417,12 +430,31 @@ export const HomePage = () => {
             </span>
           </div>
 
+          {/* Quick State Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5">
+            {['All India', 'Andhra Pradesh', 'Telangana', 'Karnataka', 'Tamil Nadu', 'Maharashtra', 'Delhi'].map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setSelectedState(st)}
+                className={`text-[11px] font-bold px-3 py-1 rounded-full whitespace-nowrap transition-all shrink-0 ${
+                  selectedState === st
+                    ? 'bg-[#1769D2] text-white shadow-xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+
           {selectedState !== 'All India' && (
             <div className="flex items-center justify-between pt-1 text-xs">
               <span className="text-[#1769D2] font-bold">
                 Filtered by: <u>{selectedState}</u>
               </span>
               <button
+                type="button"
                 onClick={() => setSelectedState('All India')}
                 className="inline-flex items-center gap-1 text-rose-600 font-bold hover:underline"
               >
@@ -436,7 +468,7 @@ export const HomePage = () => {
       {/* ========================================================
           2. OUR COACHING PROGRAMS (3 DISTINCT CARDS WITH 4x2 TILES)
       ======================================================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 space-y-4 relative">
         {/* Section Heading */}
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-black text-[#0B2545] font-serif tracking-tight">
@@ -450,12 +482,13 @@ export const HomePage = () => {
         {/* Floating Learning Platform Side Pill */}
         <Link
           to="/student"
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#0B2545] hover:bg-[#12356B] text-white px-3 py-2 rounded-l-xl shadow-2xl flex items-center gap-1.5 transition-all duration-200 border-y border-l border-white/20 group hover:pr-4"
-          title="Open Learning Platform"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-[#0B2545] hover:bg-[#12356B] text-white px-2 sm:px-3 py-2 rounded-l-xl shadow-2xl flex items-center gap-1.5 transition-all duration-200 border-y border-l border-white/20 group hover:pr-3.5"
+          title="Open Student Learning Platform"
         >
           <span className="text-sm">🎓</span>
-          <span className="text-xs font-black tracking-wide text-white">
-            Learning Platform
+          <span className="text-[10px] sm:text-xs font-black tracking-wide text-white">
+            <span className="inline sm:hidden">Portal</span>
+            <span className="hidden sm:inline">Learning Platform</span>
           </span>
         </Link>
 
@@ -470,20 +503,38 @@ export const HomePage = () => {
                 Banking • Insurance • Finance
               </p>
             </div>
-            <Link
-              to="/bankers-path"
-              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-            >
-              View All
-            </Link>
+            {bankersCourses.length > 8 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
+                }
+                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
+              >
+                {expandedSection.bankers ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({bankersCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            ) : (
+              <Link
+                to="/bankers-path"
+                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+              >
+                View All
+              </Link>
+            )}
           </div>
 
           {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {(bankersCourses.length >= 8
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+            {(bankersCourses.length > 0
               ? expandedSection.bankers
                 ? bankersCourses
                 : bankersCourses.slice(0, 8)
+              : coursesLoading
+              ? []
               : defaultBankersTiles
             ).map((course, idx) => {
               const shortName = course.slug ? getTileShortName(course) : course.name;
@@ -495,14 +546,14 @@ export const HomePage = () => {
                 <Link
                   key={course._id || idx}
                   to={`/courses/${slug}`}
-                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
                   style={{ backgroundColor: color }}
                   title={course.title || course.name}
                 >
-                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
                     {shortName}
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
                     {subtitle}
                   </div>
                 </Link>
@@ -511,19 +562,26 @@ export const HomePage = () => {
           </div>
 
           {bankersCourses.length > 8 && (
-            <div className="text-center pt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
               <button
+                type="button"
                 onClick={() =>
                   setExpandedSection((prev) => ({ ...prev, bankers: !prev.bankers }))
                 }
-                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
               >
                 {expandedSection.bankers ? (
                   <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
                 ) : (
-                  <>View All ({bankersCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                  <>View All {bankersCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
                 )}
               </button>
+              <Link
+                to="/bankers-path"
+                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
+              >
+                Banker's Path Page <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
           )}
         </div>
@@ -539,20 +597,38 @@ export const HomePage = () => {
                 Government Jobs • Banking • Railways • Defence & More
               </p>
             </div>
-            <Link
-              to="/competitive-exams"
-              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-            >
-              View All
-            </Link>
+            {competitiveCourses.length > 8 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
+                }
+                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
+              >
+                {expandedSection.competitive ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({competitiveCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            ) : (
+              <Link
+                to="/competitive-exams"
+                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+              >
+                View All
+              </Link>
+            )}
           </div>
 
           {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {(competitiveCourses.length >= 8
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+            {(competitiveCourses.length > 0
               ? expandedSection.competitive
                 ? competitiveCourses
                 : competitiveCourses.slice(0, 8)
+              : coursesLoading
+              ? []
               : defaultCompetitiveTiles
             ).map((course, idx) => {
               const shortName = course.slug ? getTileShortName(course) : course.name;
@@ -564,14 +640,14 @@ export const HomePage = () => {
                 <Link
                   key={course._id || idx}
                   to={`/courses/${slug}`}
-                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
                   style={{ backgroundColor: color }}
                   title={course.title || course.name}
                 >
-                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
                     {shortName}
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
                     {subtitle}
                   </div>
                 </Link>
@@ -580,19 +656,26 @@ export const HomePage = () => {
           </div>
 
           {competitiveCourses.length > 8 && (
-            <div className="text-center pt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
               <button
+                type="button"
                 onClick={() =>
                   setExpandedSection((prev) => ({ ...prev, competitive: !prev.competitive }))
                 }
-                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
               >
                 {expandedSection.competitive ? (
                   <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
                 ) : (
-                  <>View All ({competitiveCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                  <>View All {competitiveCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
                 )}
               </button>
+              <Link
+                to="/competitive-exams"
+                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
+              >
+                Competitive Exams Page <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
           )}
         </div>
@@ -608,20 +691,38 @@ export const HomePage = () => {
                 Engineering • Medical • Central Universities & State CETs
               </p>
             </div>
-            <Link
-              to="/entrance-exams"
-              className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
-            >
-              View All
-            </Link>
+            {entranceCourses.length > 8 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
+                }
+                className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
+              >
+                {expandedSection.entrance ? (
+                  <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>View All ({entranceCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </button>
+            ) : (
+              <Link
+                to="/entrance-exams"
+                className="bg-[#0B2545] hover:bg-[#12356B] text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+              >
+                View All
+              </Link>
+            )}
           </div>
 
           {/* 4 columns x 2 rows Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {(entranceCourses.length >= 8
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+            {(entranceCourses.length > 0
               ? expandedSection.entrance
                 ? entranceCourses
                 : entranceCourses.slice(0, 8)
+              : coursesLoading
+              ? []
               : defaultEntranceTiles
             ).map((course, idx) => {
               const shortName = course.slug ? getTileShortName(course) : course.name;
@@ -633,14 +734,14 @@ export const HomePage = () => {
                 <Link
                   key={course._id || idx}
                   to={`/courses/${slug}`}
-                  className="p-2 sm:p-2.5 rounded-lg text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[60px] text-center"
+                  className="group min-w-0 p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between min-h-[56px] sm:min-h-[64px] md:min-h-[70px] text-center overflow-hidden"
                   style={{ backgroundColor: color }}
                   title={course.title || course.name}
                 >
-                  <div className="font-black text-xs sm:text-sm tracking-wide uppercase leading-tight drop-shadow-xs">
+                  <div className="font-black text-[10px] sm:text-xs md:text-sm tracking-tight sm:tracking-wide uppercase leading-tight drop-shadow-xs truncate w-full px-0.5">
                     {shortName}
                   </div>
-                  <div className="text-[8px] sm:text-[9px] text-white/90 font-medium line-clamp-1 mt-0.5">
+                  <div className="text-[7.5px] sm:text-[9.5px] text-white/90 font-medium truncate w-full mt-0.5 leading-tight px-0.5">
                     {subtitle}
                   </div>
                 </Link>
@@ -649,19 +750,26 @@ export const HomePage = () => {
           </div>
 
           {entranceCourses.length > 8 && (
-            <div className="text-center pt-1">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
               <button
+                type="button"
                 onClick={() =>
                   setExpandedSection((prev) => ({ ...prev, entrance: !prev.entrance }))
                 }
-                className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+                className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
               >
                 {expandedSection.entrance ? (
                   <>Show Less <ChevronUp className="w-3.5 h-3.5" /></>
                 ) : (
-                  <>View All ({entranceCourses.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                  <>View All {entranceCourses.length} Courses <ChevronDown className="w-3.5 h-3.5" /></>
                 )}
               </button>
+              <Link
+                to="/entrance-exams"
+                className="font-bold text-slate-600 hover:text-[#1769D2] inline-flex items-center gap-0.5 text-[11px]"
+              >
+                Entrance Exams Page <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
           )}
         </div>
@@ -670,28 +778,28 @@ export const HomePage = () => {
       {/* ========================================================
           3. 4 ACTION CARDS (2x2 GRID MATCHING REFERENCE UI)
       ======================================================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {/* Card 1: Enquiry & Demo (Blue) */}
           <Link
             to="/enquiry"
-            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
             style={{ backgroundColor: '#0080FF' }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <Mail className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-left">
                 <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
                   Enquiry & Demo
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
                   Join our free demo classes
                 </p>
               </div>
             </div>
-            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
               <ArrowRight className="w-3 h-3 text-white" />
             </div>
           </Link>
@@ -699,23 +807,23 @@ export const HomePage = () => {
           {/* Card 2: Materials (Orange) */}
           <Link
             to="/recorded-classes"
-            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
             style={{ backgroundColor: '#FF8C00' }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <FileText className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-left">
                 <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
                   Materials
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
                   Get study notes
                 </p>
               </div>
             </div>
-            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
               <ArrowRight className="w-3 h-3 text-white" />
             </div>
           </Link>
@@ -723,23 +831,23 @@ export const HomePage = () => {
           {/* Card 3: Classes (Green) */}
           <Link
             to="/online-classes"
-            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
             style={{ backgroundColor: '#00C853' }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <MonitorPlay className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <MonitorPlay className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-left">
                 <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
                   Classes
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
                   Live & Recorded
                 </p>
               </div>
             </div>
-            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
               <ArrowRight className="w-3 h-3 text-white" />
             </div>
           </Link>
@@ -747,23 +855,23 @@ export const HomePage = () => {
           {/* Card 4: Exams (Purple) */}
           <Link
             to="/mock-tests"
-            className="p-3 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
+            className="p-2.5 sm:p-4 rounded-xl text-white shadow-xs hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-between group"
             style={{ backgroundColor: '#9B51E0' }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="text-left">
                 <h4 className="font-black text-xs sm:text-sm leading-tight text-white">
                   Exams
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
+                <p className="text-[8px] sm:text-[10px] text-white/90 font-medium line-clamp-1">
                   Mock tests & Online tests
                 </p>
               </div>
             </div>
-            <div className="w-6 h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/40 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
               <ArrowRight className="w-3 h-3 text-white" />
             </div>
           </Link>
@@ -773,7 +881,7 @@ export const HomePage = () => {
       {/* ========================================================
           4. "LEARN WITH A CLEAR PLAN" (EXACT MATCH TO REFERENCE)
       ======================================================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
           {/* Header with floating graduation cap badge */}
           <div className="flex items-start justify-between gap-4">
