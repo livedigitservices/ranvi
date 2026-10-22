@@ -13,6 +13,8 @@ import {
   Check,
   X,
   Sparkles,
+  BookOpen,
+  GraduationCap,
 } from 'lucide-react';
 
 export const AdminFacultyPage = () => {
@@ -255,9 +257,17 @@ export const AdminFacultyPage = () => {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1">
-                  <p className="text-slate-700 font-bold">📚 {fac.specialization}</p>
-                  {fac.qualifications && <p className="text-slate-500">🎓 {fac.qualifications}</p>}
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1.5">
+                  <p className="text-slate-700 font-bold flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-[#1769D2] shrink-0" />
+                    <span>{fac.specialization}</span>
+                  </p>
+                  {fac.qualifications && (
+                    <p className="text-slate-500 flex items-center gap-1.5">
+                      <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{fac.qualifications}</span>
+                    </p>
+                  )}
                 </div>
 
                 {fac.bio && (

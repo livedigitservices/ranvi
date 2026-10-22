@@ -14,7 +14,11 @@ import {
   GraduationCap,
   FileCheck2,
   Trophy,
+  Star,
+  LayoutList,
+  MessageSquare,
 } from 'lucide-react';
+import { WhatsAppIcon, Instagram, Facebook, Youtube, Linkedin } from './SocialIcons';
 
 export const Footer = () => {
   const { settings } = useSiteSettings();
@@ -66,20 +70,20 @@ export const Footer = () => {
 
             {/* 4 Trust Badges Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-2 text-[10px] sm:text-[11px] font-bold text-blue-100 border-t border-white/15">
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-[#F4B942]">⭐</span>
+              <div className="flex items-center justify-center gap-1.5">
+                <Star className="w-3.5 h-3.5 fill-[#F4B942] text-[#F4B942] shrink-0" />
                 <span>100% Exam Aligned</span>
               </div>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-emerald-400">🛡️</span>
+              <div className="flex items-center justify-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>Verified Mentors</span>
               </div>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-amber-300">🏆</span>
+              <div className="flex items-center justify-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                 <span>High Success Rate</span>
               </div>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-cyan-300">📱</span>
+              <div className="flex items-center justify-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
                 <span>Single-Device Secure</span>
               </div>
             </div>
@@ -94,7 +98,7 @@ export const Footer = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white font-extrabold text-sm uppercase tracking-wider">
               <span className="w-6 h-6 rounded-md bg-[#1976D2] flex items-center justify-center text-white text-xs">
-                ≡
+                <LayoutList className="w-3.5 h-3.5 text-white" />
               </span>
               <span>Quick Links</span>
             </div>
@@ -136,7 +140,7 @@ export const Footer = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white font-extrabold text-sm uppercase tracking-wider">
               <span className="w-6 h-6 rounded-md bg-[#1976D2] flex items-center justify-center text-white text-xs">
-                🎓
+                <GraduationCap className="w-3.5 h-3.5 text-white" />
               </span>
               <span>Student Services</span>
             </div>
@@ -181,7 +185,7 @@ export const Footer = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-white font-extrabold text-sm uppercase tracking-wider">
             <span className="w-6 h-6 rounded-md bg-[#1976D2] flex items-center justify-center text-white text-xs">
-              💬
+              <MessageSquare className="w-3.5 h-3.5 text-white" />
             </span>
             <span>Contact & Support</span>
           </div>
@@ -221,21 +225,22 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Connect With Us (4 Social Buttons in 2x2 Grid) */}
+          {/* Connect With Us (Clean Social Buttons with Authentic SVG / Lucide Icons) */}
           <div className="space-y-2 pt-1">
             <span className="text-xs font-bold text-slate-400 block">Connect with us:</span>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {/* WhatsApp */}
               <a
                 href={`https://wa.me/${contact.phone?.replace(/[^0-9]/g, '') || '919876543210'}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/50 text-slate-200 text-xs font-bold transition-all shadow-xs"
+                aria-label="Connect with us on WhatsApp"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/50 text-slate-200 text-xs font-bold transition-all shadow-xs group"
               >
-                <span className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[10px]">
-                  WA
+                <span className="w-6 h-6 rounded-lg bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-110 transition-transform">
+                  <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
                 </span>
-                <span>WhatsApp</span>
+                <span className="truncate">WhatsApp</span>
               </a>
 
               {/* YouTube */}
@@ -243,12 +248,13 @@ export const Footer = () => {
                 href="https://youtube.com"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#FF0000]/20 border border-white/10 hover:border-[#FF0000]/50 text-slate-200 text-xs font-bold transition-all shadow-xs"
+                aria-label="Watch Ranvi Institutions on YouTube"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#FF0000]/20 border border-white/10 hover:border-[#FF0000]/50 text-slate-200 text-xs font-bold transition-all shadow-xs group"
               >
-                <span className="w-5 h-5 rounded-full bg-[#FF0000] text-white flex items-center justify-center text-[10px]">
-                  YT
+                <span className="w-6 h-6 rounded-lg bg-[#FF0000] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-110 transition-transform">
+                  <Youtube className="w-3.5 h-3.5 text-white" />
                 </span>
-                <span>YouTube</span>
+                <span className="truncate">YouTube</span>
               </a>
 
               {/* Instagram */}
@@ -256,12 +262,13 @@ export const Footer = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-pink-600/20 border border-white/10 hover:border-pink-500/50 text-slate-200 text-xs font-bold transition-all shadow-xs"
+                aria-label="Follow Ranvi Institutions on Instagram"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-pink-600/20 border border-white/10 hover:border-pink-500/50 text-slate-200 text-xs font-bold transition-all shadow-xs group"
               >
-                <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-pink-500 text-white flex items-center justify-center text-[10px]">
-                  IG
+                <span className="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-110 transition-transform">
+                  <Instagram className="w-3.5 h-3.5 text-white" />
                 </span>
-                <span>Instagram</span>
+                <span className="truncate">Instagram</span>
               </a>
 
               {/* Facebook */}
@@ -269,12 +276,13 @@ export const Footer = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#1877F2]/20 border border-white/10 hover:border-[#1877F2]/50 text-slate-200 text-xs font-bold transition-all shadow-xs"
+                aria-label="Like Ranvi Institutions on Facebook"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#08182D] hover:bg-[#1877F2]/20 border border-white/10 hover:border-[#1877F2]/50 text-slate-200 text-xs font-bold transition-all shadow-xs group"
               >
-                <span className="w-5 h-5 rounded-full bg-[#1877F2] text-white flex items-center justify-center text-[10px]">
-                  FB
+                <span className="w-6 h-6 rounded-lg bg-[#1877F2] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-110 transition-transform">
+                  <Facebook className="w-3.5 h-3.5 text-white" />
                 </span>
-                <span>Facebook</span>
+                <span className="truncate">Facebook</span>
               </a>
             </div>
           </div>
@@ -285,7 +293,9 @@ export const Footer = () => {
         ======================================================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#08182D]/70 border border-white/10">
-            <span className="text-[#F4B942] text-lg shrink-0">✦</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-[#F4B942]" />
+            </div>
             <div>
               <div className="text-xs font-extrabold text-white">Single-Device Protection</div>
               <div className="text-[10px] text-slate-400">Secured Student Account</div>
@@ -293,7 +303,9 @@ export const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#08182D]/70 border border-white/10">
-            <span className="text-emerald-400 text-lg shrink-0">🎓</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-5 h-5 text-emerald-400" />
+            </div>
             <div>
               <div className="text-xs font-extrabold text-white">Ex-Banker Mentors</div>
               <div className="text-[10px] text-slate-400">Learn From Industry Veterans</div>
@@ -301,7 +313,9 @@ export const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#08182D]/70 border border-white/10">
-            <span className="text-cyan-400 text-lg shrink-0">📝</span>
+            <div className="w-9 h-9 rounded-xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center shrink-0">
+              <FileCheck2 className="w-5 h-5 text-cyan-400" />
+            </div>
             <div>
               <div className="text-xs font-extrabold text-white">Exact Exam Pattern</div>
               <div className="text-[10px] text-slate-400">10–20 Full-Length Mocks</div>
@@ -309,7 +323,9 @@ export const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#08182D]/70 border border-white/10">
-            <span className="text-purple-400 text-lg shrink-0">✨</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-400/10 border border-purple-400/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+            </div>
             <div>
               <div className="text-xs font-extrabold text-white">Result-Oriented Prep</div>
               <div className="text-[10px] text-slate-400">Proven Rankers Track Record</div>

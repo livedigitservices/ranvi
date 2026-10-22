@@ -236,8 +236,14 @@ export const FacultyDashboardPage = () => {
                     )}
                   </div>
                   <h3 className="text-base font-black text-[#0B1E3D]">{cls.title}</h3>
-                  <p className="text-xs text-slate-600">
-                    📅 {new Date(cls.scheduledDate).toLocaleDateString()} at <strong>{cls.startTime}</strong> ({cls.durationMinutes} mins) • Passcode: <code className="bg-slate-200 px-1 py-0.5 rounded font-bold">{cls.zoomPasscode || 'None'}</code>
+                  <p className="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
+                      <Calendar className="w-3.5 h-3.5 text-[#1769D2] shrink-0" />
+                      {new Date(cls.scheduledDate).toLocaleDateString()}
+                    </span>
+                    <span>at <strong>{cls.startTime}</strong> ({cls.durationMinutes} mins)</span>
+                    <span>•</span>
+                    <span>Passcode: <code className="bg-slate-200 px-1 py-0.5 rounded font-bold">{cls.zoomPasscode || 'None'}</code></span>
                   </p>
                 </div>
 

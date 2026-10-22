@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Sparkles,
   HelpCircle,
+  MapPin,
 } from 'lucide-react';
 
 export const CourseDetailsPage = () => {
@@ -112,8 +113,9 @@ export const CourseDetailsPage = () => {
                 {course.mode === 'BOTH' ? 'Online + Offline Batches' : `${course.mode} Mode`}
               </span>
               {course.states && course.states.length > 0 && (
-                <span className="bg-emerald-400/20 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-400/30">
-                  📍 {course.states.join(', ')}
+                <span className="bg-emerald-400/20 text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-400/30 inline-flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                  <span>{course.states.join(', ')}</span>
                 </span>
               )}
             </div>

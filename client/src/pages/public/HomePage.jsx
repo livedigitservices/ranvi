@@ -485,7 +485,7 @@ export const HomePage = () => {
           className="fixed right-0 top-1/2 -translate-y-1/2 z-30 bg-[#0B2545] hover:bg-[#12356B] text-white px-2 sm:px-3 py-2 rounded-l-xl shadow-2xl flex items-center gap-1.5 transition-all duration-200 border-y border-l border-white/20 group hover:pr-3.5"
           title="Open Student Learning Platform"
         >
-          <span className="text-sm">🎓</span>
+          <GraduationCap className="w-4 h-4 text-[#F4B942] shrink-0" />
           <span className="text-[10px] sm:text-xs font-black tracking-wide text-white">
             <span className="inline sm:hidden">Portal</span>
             <span className="hidden sm:inline">Learning Platform</span>
@@ -917,9 +917,10 @@ export const HomePage = () => {
               </div>
               <Link
                 to="/recorded-classes"
-                className="text-[11px] font-black text-[#0070F3] hover:underline inline-flex items-center gap-1 pt-1"
+                className="text-[11px] font-black text-[#0070F3] hover:underline inline-flex items-center gap-1.5 pt-1"
               >
-                VIEW SYLLABUS →
+                <span>VIEW SYLLABUS</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -936,9 +937,10 @@ export const HomePage = () => {
               </div>
               <Link
                 to="/online-classes"
-                className="text-[11px] font-black text-[#00A86B] hover:underline inline-flex items-center gap-1 pt-1"
+                className="text-[11px] font-black text-[#00A86B] hover:underline inline-flex items-center gap-1.5 pt-1"
               >
-                EXPLORE CLASSES →
+                <span>EXPLORE CLASSES</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -955,9 +957,10 @@ export const HomePage = () => {
               </div>
               <Link
                 to="/mock-tests"
-                className="text-[11px] font-black text-[#8A2BE2] hover:underline inline-flex items-center gap-1 pt-1"
+                className="text-[11px] font-black text-[#8A2BE2] hover:underline inline-flex items-center gap-1.5 pt-1"
               >
-                ATTEMPT MOCK TEST →
+                <span>ATTEMPT MOCK TEST</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -974,9 +977,10 @@ export const HomePage = () => {
               </div>
               <Link
                 to="/faculty"
-                className="text-[11px] font-black text-[#D97706] hover:underline inline-flex items-center gap-1 pt-1"
+                className="text-[11px] font-black text-[#D97706] hover:underline inline-flex items-center gap-1.5 pt-1"
               >
-                MEET OUR FACULTY →
+                <span>MEET OUR FACULTY</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>

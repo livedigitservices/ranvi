@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   HelpCircle,
   Layers,
+  Check,
+  ArrowRight,
 } from 'lucide-react';
 
 export const AdminCourseFormPage = () => {
@@ -389,7 +391,7 @@ export const AdminCourseFormPage = () => {
                   </div>
                 </div>
                 <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
-                  →
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>
             </div>
@@ -415,13 +417,18 @@ export const AdminCourseFormPage = () => {
                     key={st}
                     type="button"
                     onClick={() => toggleState(st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
                       isSelected
                         ? 'bg-[#12356B] text-white border-[#12356B] shadow-xs'
                         : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    {isSelected ? '✓ ' : '+ '}{st}
+                    {isSelected ? (
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    ) : (
+                      <Plus className="w-3 h-3 text-slate-400" />
+                    )}
+                    <span>{st}</span>
                   </button>
                 );
               })}

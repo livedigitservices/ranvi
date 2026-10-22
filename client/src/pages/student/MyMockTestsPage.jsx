@@ -79,9 +79,10 @@ export const MyMockTestsPage = () => {
                     <td className="p-3 text-right">
                       <Link
                         to={`/student/mock-tests/result/${attempt._id}`}
-                        className="text-xs font-bold text-[#1769D2] hover:underline"
+                        className="text-xs font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
                       >
-                        View Solutions →
+                        <span>View Solutions</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>
                   </tr>

@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   HelpCircle,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export const ExamResultPage = () => {
@@ -107,10 +108,15 @@ export const ExamResultPage = () => {
           <h1 className="text-3xl sm:text-4xl font-black font-heading">
             Score: {attempt.score} <span className="text-lg font-normal text-blue-200">/ {attempt.totalMarks}</span>
           </h1>
-          <p className="text-xs sm:text-sm text-blue-100">
-            {attempt.isPassed
-              ? '🎉 Excellent performance! You have cleared the qualifying threshold.'
-              : 'Keep practicing! Review the solutions below to strengthen weak topics.'}
+          <p className="text-xs sm:text-sm text-blue-100 flex items-center justify-center md:justify-start gap-1.5">
+            {attempt.isPassed ? (
+              <>
+                <Sparkles className="w-4 h-4 text-[#F4B942] shrink-0" />
+                <span>Excellent performance! You have cleared the qualifying threshold.</span>
+              </>
+            ) : (
+              <span>Keep practicing! Review the solutions below to strengthen weak topics.</span>
+            )}
           </p>
         </div>
 
@@ -174,9 +180,18 @@ export const ExamResultPage = () => {
                   <span className="text-xs font-black text-[#1769D2]">Score: {sub.score}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[10px] text-slate-500 font-semibold pt-1 border-t border-slate-200">
-                  <span className="text-emerald-700">✓ {sub.correct} Correct</span>
-                  <span className="text-rose-600">✗ {sub.incorrect} Wrong</span>
-                  <span>{sub.unanswered} Left</span>
+                  <span className="text-emerald-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>{sub.correct} Correct</span>
+                  </span>
+                  <span className="text-rose-600 flex items-center gap-1">
+                    <XCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                    <span>{sub.incorrect} Wrong</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{sub.unanswered} Left</span>
+                  </span>
                 </div>
               </div>
             ))}

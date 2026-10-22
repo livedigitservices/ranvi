@@ -4,6 +4,7 @@ import { enquiryService } from '../../services';
 import { useToast } from '../../context/ToastContext';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, MessageSquare } from 'lucide-react';
+import { WhatsAppIcon, Instagram, Facebook, Youtube, Linkedin } from '../../components/common/SocialIcons';
 
 export const ContactPage = () => {
   const { settings } = useSiteSettings();
@@ -106,6 +107,60 @@ export const ContactPage = () => {
                   <p className="text-xs text-slate-600 mt-0.5">
                     {contact.workingHours}
                   </p>
+                </div>
+              </div>
+
+              {/* Connect On Social Media */}
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <h4 className="font-bold text-xs text-[#12356B] uppercase tracking-wider">
+                  Connect With Our Admissions Desk
+                </h4>
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={`https://wa.me/${contact.phone?.replace(/[^0-9]/g, '') || '919876543210'}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Chat on WhatsApp"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-[#25D366]/20 text-[#25D366] border border-slate-200 hover:border-[#25D366]/40 transition-all shadow-xs group"
+                  >
+                    <WhatsAppIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://youtube.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Subscribe on YouTube"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-red-50 text-[#FF0000] border border-slate-200 hover:border-red-300 transition-all shadow-xs group"
+                  >
+                    <Youtube className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Follow on Instagram"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-pink-50 text-pink-600 border border-slate-200 hover:border-pink-300 transition-all shadow-xs group"
+                  >
+                    <Instagram className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Follow on Facebook"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-[#1877F2] border border-slate-200 hover:border-blue-300 transition-all shadow-xs group"
+                  >
+                    <Facebook className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://linkedin.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Connect on LinkedIn"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-[#0A66C2] border border-slate-200 hover:border-blue-300 transition-all shadow-xs group"
+                  >
+                    <Linkedin className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </a>
                 </div>
               </div>
             </div>
