@@ -137,7 +137,8 @@ const CourseSchema = new mongoose.Schema({
 });
 
 CourseSchema.index({ division: 1, categoryId: 1, isPublished: 1 });
-CourseSchema.index({ states: 1 });
+CourseSchema.index({ states: 1, isPublished: 1 });
+CourseSchema.index({ isPublished: 1, displayOrder: 1, isFeatured: -1, createdAt: -1 });
 CourseSchema.index({ isFeatured: 1 });
 CourseSchema.index({ displayOrder: 1 });
 

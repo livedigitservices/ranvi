@@ -4,10 +4,33 @@ const Entitlement = require('../models/Entitlement');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
 const { broadcastCourseUpdate } = require('../utils/socketService');
 
+// Fast server-side response cache for public courses listing and states
+const courseListCache = new Map();
+let cachedStates = null;
+let lastStatesFetch = 0;
+const cachedCategories = new Map();
+
+const invalidateCourseServerCache = () => {
+  courseListCache.clear();
+  cachedStates = null;
+  lastStatesFetch = 0;
+  cachedCategories.clear();
+};
+
 // Public: Get all courses with filters and pagination
 const getCourses = async (req, res, next) => {
   try {
     const { division, category, search, page = 1, limit = 12, mode, featured, state, includeUnpublished } = req.query;
+
+    // Check fast memory cache for standard public queries
+    const cacheKey = JSON.stringify(req.query);
+    if (includeUnpublished !== 'true' && !search) {
+      const cached = courseListCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 60000) {
+        return sendSuccess(res, 'Courses retrieved (cached)', cached.data);
+      }
+    }
+
     const conditions = [];
 
     if (includeUnpublished !== 'true') {
@@ -22,7 +45,7 @@ const getCourses = async (req, res, next) => {
       // Find category by slug or id
       const cat = await Category.findOne({
         $or: [{ slug: category.toLowerCase() }, { _id: category.match(/^[0-9a-fA-F]{24}$/) ? category : null }],
-      });
+      }).lean();
       if (cat) {
         conditions.push({ categoryId: cat._id });
       }
@@ -62,12 +85,14 @@ const getCourses = async (req, res, next) => {
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     const total = await Course.countDocuments(query);
     const courses = await Course.find(query)
+      .select('title slug division categoryId thumbnail fee originalPrice mode duration batchSchedule isPublished isFeatured states tileColor tileShortName tileSubtitle shortDescription displayOrder createdAt')
       .populate('categoryId', 'name slug icon color division')
       .sort({ displayOrder: 1, isFeatured: -1, createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit, 10));
+      .limit(parseInt(limit, 10))
+      .lean();
 
-    return sendSuccess(res, 'Courses retrieved', {
+    const responsePayload = {
       courses,
       pagination: {
         total,
@@ -75,7 +100,13 @@ const getCourses = async (req, res, next) => {
         pages: Math.ceil(total / parseInt(limit, 10)) || 1,
         limit: parseInt(limit, 10),
       },
-    });
+    };
+
+    if (includeUnpublished !== 'true' && !search) {
+      courseListCache.set(cacheKey, { data: responsePayload, timestamp: Date.now() });
+    }
+
+    return sendSuccess(res, 'Courses retrieved', responsePayload);
   } catch (error) {
     next(error);
   }
@@ -133,12 +164,19 @@ const getCourseBySlug = async (req, res, next) => {
 const getCategories = async (req, res, next) => {
   try {
     const { division } = req.query;
+    const catCacheKey = division ? division.toUpperCase() : 'ALL';
+    const cachedCat = cachedCategories.get(catCacheKey);
+    if (cachedCat && Date.now() - cachedCat.timestamp < 120000) {
+      return sendSuccess(res, 'Categories retrieved (cached)', cachedCat.data);
+    }
+
     const query = { isActive: true };
     if (division) {
       query.division = division.toUpperCase();
     }
 
-    const categories = await Category.find(query).sort({ sortOrder: 1, name: 1 });
+    const categories = await Category.find(query).sort({ sortOrder: 1, name: 1 }).lean();
+    cachedCategories.set(catCacheKey, { data: categories, timestamp: Date.now() });
     return sendSuccess(res, 'Categories retrieved', categories);
   } catch (error) {
     next(error);
@@ -229,6 +267,7 @@ const createCourse = async (req, res, next) => {
       displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
     });
 
+    invalidateCourseServerCache();
     broadcastCourseUpdate('CREATE', course);
 
     return sendSuccess(res, 'Course created successfully', course, 201);
@@ -246,6 +285,7 @@ const updateCourse = async (req, res, next) => {
     if (!course) {
       return sendError(res, 'Course not found', 404);
     }
+    invalidateCourseServerCache();
     broadcastCourseUpdate('UPDATE', course);
     return sendSuccess(res, 'Course updated successfully', course);
   } catch (error) {
@@ -265,12 +305,14 @@ const deleteCourse = async (req, res, next) => {
     }
     if (permanent === 'true') {
       await Course.deleteOne({ _id: course._id });
+      invalidateCourseServerCache();
       broadcastCourseUpdate('DELETE', course);
       return sendSuccess(res, 'Course permanently deleted successfully');
     }
     // Soft delete or unpublish
     course.isPublished = false;
     await course.save();
+    invalidateCourseServerCache();
     broadcastCourseUpdate('UNPUBLISH', course);
     return sendSuccess(res, 'Course unpublished successfully');
   } catch (error) {
@@ -282,6 +324,10 @@ const deleteCourse = async (req, res, next) => {
 // Public: Get list of all states associated with courses
 const getAvailableStates = async (req, res, next) => {
   try {
+    if (cachedStates && Date.now() - lastStatesFetch < 120000) {
+      return sendSuccess(res, 'Available states retrieved (cached)', cachedStates);
+    }
+
     const defaultStates = [
       'All India',
       'Andhra Pradesh',
@@ -306,7 +352,9 @@ const getAvailableStates = async (req, res, next) => {
     const set = new Set(['All India']);
     defaultStates.forEach((s) => set.add(s));
     flatDbStates.forEach((s) => set.add(s));
-    return sendSuccess(res, 'Available states retrieved', Array.from(set));
+    cachedStates = Array.from(set);
+    lastStatesFetch = Date.now();
+    return sendSuccess(res, 'Available states retrieved', cachedStates);
   } catch (error) {
     next(error);
   }

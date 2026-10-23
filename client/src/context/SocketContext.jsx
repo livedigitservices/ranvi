@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { getSocket, updateSocketAuth, subscribeToTabs } from '../services/socket';
+import { clearClientCache } from '../services';
 import { useAuth } from './AuthContext';
 
 const SocketContext = createContext(null);
@@ -38,6 +39,10 @@ export const SocketProvider = ({ children }) => {
 
     s.on('connect', handleConnect);
     s.on('disconnect', handleDisconnect);
+
+    // Auto-clear cache on real-time server events
+    s.on('courses:updated', () => clearClientCache('/courses'));
+    s.on('announcement:updated', () => clearClientCache('/site-settings'));
 
     if (s.connected) {
       setIsConnected(true);

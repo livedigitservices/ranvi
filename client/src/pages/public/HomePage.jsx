@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { courseService } from '../../services';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
@@ -20,81 +20,95 @@ import {
 } from 'lucide-react';
 
 // ========================================================
-// 1. TILE HELPER FUNCTIONS (CLEAN TITLES & SUBTITLES)
+// 1. TILE HELPER FUNCTIONS (FAST CACHED TITLES & SUBTITLES)
 // ========================================================
+const shortNameCache = new Map();
 const getTileShortName = (course) => {
-  if (course?.tileShortName) return course.tileShortName;
-  if (course?.name && !course?.title) return course.name;
-  const t = course?.title || course?.name || '';
-  if (!t) return 'PROGRAM';
-  if (/^JAIIB/i.test(t)) return 'JAIIB';
-  if (/^CAIIB/i.test(t)) return 'CAIIB';
-  if (/\bDBF\b/i.test(t)) return 'DBF';
-  if (/\bDTM\b/i.test(t)) return 'DTM';
-  if (/\bAMFI\b/i.test(t)) return 'AMFI';
-  if (/\bNISM\b/i.test(t)) return 'NISM (SEBI)';
-  if (/\bIRDAI\b/i.test(t)) return 'IRDAI';
-  if (/\bDRA\b/i.test(t)) return 'DRA';
-  if (/^IBPS/i.test(t)) return 'IBPS';
-  if (/^SBI/i.test(t)) return 'SBI';
-  if (/^RBI/i.test(t)) return 'RBI';
-  if (/^SSC/i.test(t)) return 'SSC';
-  if (/\bRailways\b|\bRRB\b/i.test(t)) return 'RAILWAYS';
-  if (/Police/i.test(t)) return 'POLICE & DEFENCE';
-  if (/LIC/i.test(t)) return 'LIC / INSURANCE';
-  if (/Teaching/i.test(t)) return 'TEACHING';
-  if (/^JEE/i.test(t)) return 'JEE';
-  if (/^NEET/i.test(t)) return 'NEET-UG';
-  if (/^CUET/i.test(t)) return 'CUET';
-  if (/AP EAPCET/i.test(t)) return 'AP EAPCET';
-  if (/TG EAPCET/i.test(t)) return 'TG EAPCET';
-  if (/CLAT/i.test(t)) return 'CLAT';
-  if (/NDA/i.test(t)) return 'NDA';
-  if (/POLYCET/i.test(t)) return 'POLYCET';
-  if (/APRJC/i.test(t)) return 'APRJC CET';
-  if (/TGCET/i.test(t)) return 'TGCET';
-  const parts = t.split(' ');
-  return parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
+  if (!course) return 'PROGRAM';
+  const id = course._id || course.slug || course.title || course.name;
+  if (id && shortNameCache.has(id)) return shortNameCache.get(id);
+
+  let result = 'PROGRAM';
+  if (course?.tileShortName) result = course.tileShortName;
+  else if (course?.name && !course?.title) result = course.name;
+  else {
+    const t = course?.title || course?.name || '';
+    if (!t) result = 'PROGRAM';
+    else if (/^JAIIB/i.test(t)) result = 'JAIIB';
+    else if (/^CAIIB/i.test(t)) result = 'CAIIB';
+    else if (/\bDBF\b/i.test(t)) result = 'DBF';
+    else if (/\bDTM\b/i.test(t)) result = 'DTM';
+    else if (/\bAMFI\b/i.test(t)) result = 'AMFI';
+    else if (/\bNISM\b/i.test(t)) result = 'NISM (SEBI)';
+    else if (/\bIRDAI\b/i.test(t)) result = 'IRDAI';
+    else if (/\bDRA\b/i.test(t)) result = 'DRA';
+    else if (/^IBPS/i.test(t)) result = 'IBPS';
+    else if (/^SBI/i.test(t)) result = 'SBI';
+    else if (/^RBI/i.test(t)) result = 'RBI';
+    else if (/^SSC/i.test(t)) result = 'SSC';
+    else if (/\bRailways\b|\bRRB\b/i.test(t)) result = 'RAILWAYS';
+    else if (/Police/i.test(t)) result = 'POLICE & DEFENCE';
+    else if (/LIC/i.test(t)) result = 'LIC / INSURANCE';
+    else if (/Teaching/i.test(t)) result = 'TEACHING';
+    else if (/^JEE/i.test(t)) result = 'JEE';
+    else if (/^NEET/i.test(t)) result = 'NEET-UG';
+    else if (/^CUET/i.test(t)) result = 'CUET';
+    else if (/AP EAPCET/i.test(t)) result = 'AP EAPCET';
+    else if (/TG EAPCET/i.test(t)) result = 'TG EAPCET';
+    else if (/CLAT/i.test(t)) result = 'CLAT';
+    else if (/NDA/i.test(t)) result = 'NDA';
+    else if (/POLYCET/i.test(t)) result = 'POLYCET';
+    else if (/APRJC/i.test(t)) result = 'APRJC CET';
+    else if (/TGCET/i.test(t)) result = 'TGCET';
+    else {
+      const parts = t.split(' ');
+      result = parts.length > 1 && parts[0].length <= 4 ? `${parts[0]} ${parts[1]}` : parts[0];
+    }
+  }
+
+  if (id) shortNameCache.set(id, result);
+  return result;
 };
 
+const subtitleCache = new Map();
 const getTileSubtitle = (course, fallbackSubtitle = '') => {
+  const id = course?._id || course?.slug || course?.title;
+  if (id && subtitleCache.has(id)) return subtitleCache.get(id);
+
   const t = (course?.title || course?.name || '').toLowerCase();
   const slug = (course?.slug || '').toLowerCase();
   const rawSub = course?.tileSubtitle || course?.subtitle || '';
 
+  let result = '';
   // 1. Direct canonical mappings matching reference UI perfectly
-  if (slug.includes('jaiib') || t.includes('jaiib')) return 'Junior Associate of IIBF';
-  if (slug.includes('caiib') || t.includes('caiib')) return 'Certified Associate of IIBF';
-  if (slug.includes('dbf') || t.includes('diploma in banking')) return 'Diploma in Banking & Finance';
-  if (slug.includes('dtm') || t.includes('treasury')) return 'Treasury & Risk Management';
-  if (slug.includes('amfi') || t.includes('mutual fund')) return 'Mutual Fund Certification';
-  if (slug.includes('nism') || t.includes('sebi')) return 'Securities Market Certification';
-  if (slug.includes('irdai') || t.includes('insurance regulatory')) return 'Insurance Agent & Broker';
-  if (slug.includes('dra') || t.includes('debt recovery')) return 'Debt Recovery Agent';
-
-  if (slug.includes('ibps') || t.startsWith('ibps')) return 'PO / Clerk / SO / RRB';
-  if (slug.includes('sbi') || t.startsWith('sbi')) return 'PO / Clerk / Specialist';
-  if (slug.includes('rbi') || t.startsWith('rbi')) return 'Grade B / Assistant';
-  if (slug.includes('ssc') || t.startsWith('ssc')) return 'CGL / CHSL / MTS';
-  if (slug.includes('railway') || slug.includes('rrb') || t.includes('railway')) return 'RRB NTPC / Group D';
-  if (slug.includes('police') || t.includes('police')) return 'SI / Constable / Defence';
-  if (slug.includes('lic') || t.includes('lic')) return 'AAO / ADO / Assistant';
-  if (slug.includes('teaching') || t.includes('teaching') || t.includes('ctet') || t.includes('dsc')) return 'TET / CTET / DSC';
-
-  if (slug.includes('jee') || t.startsWith('jee')) return 'Main / Advanced';
-  if (slug.includes('neet') || t.startsWith('neet')) return 'Medical Entrance';
-  if (slug.includes('cuet') || t.startsWith('cuet')) return 'Central Universities';
-  if (slug.includes('ap-eapcet') || t.includes('ap eapcet')) return 'Engineering / Agriculture';
-  if (slug.includes('tg-eapcet') || t.includes('tg eapcet')) return 'Engineering / Agriculture';
-  if (slug.includes('clat') || t.startsWith('clat')) return 'Law Entrance';
-  if (slug.includes('nda') || t.startsWith('nda')) return 'Defence Academy';
-  if (slug.includes('polycet') || t.includes('polycet')) return 'Polytechnic Diploma';
-  if (slug.includes('aprjc') || t.includes('aprjc')) return 'Intermediate Courses';
-  if (slug.includes('tgcet') || t.includes('tgcet')) return 'Gurukul Schools';
-
-  // 2. Clean up any verbose raw subtitle from custom admin courses
-  if (rawSub) {
-    return rawSub
+  if (slug.includes('jaiib') || t.includes('jaiib')) result = 'Junior Associate of IIBF';
+  else if (slug.includes('caiib') || t.includes('caiib')) result = 'Certified Associate of IIBF';
+  else if (slug.includes('dbf') || t.includes('diploma in banking')) result = 'Diploma in Banking & Finance';
+  else if (slug.includes('dtm') || t.includes('treasury')) result = 'Treasury & Risk Management';
+  else if (slug.includes('amfi') || t.includes('mutual fund')) result = 'Mutual Fund Certification';
+  else if (slug.includes('nism') || t.includes('sebi')) result = 'Securities Market Certification';
+  else if (slug.includes('irdai') || t.includes('insurance regulatory')) result = 'Insurance Agent & Broker';
+  else if (slug.includes('dra') || t.includes('debt recovery')) result = 'Debt Recovery Agent';
+  else if (slug.includes('ibps') || t.startsWith('ibps')) result = 'PO / Clerk / SO / RRB';
+  else if (slug.includes('sbi') || t.startsWith('sbi')) result = 'PO / Clerk / Specialist';
+  else if (slug.includes('rbi') || t.startsWith('rbi')) result = 'Grade B / Assistant';
+  else if (slug.includes('ssc') || t.startsWith('ssc')) result = 'CGL / CHSL / MTS';
+  else if (slug.includes('railway') || slug.includes('rrb') || t.includes('railway')) result = 'RRB NTPC / Group D';
+  else if (slug.includes('police') || t.includes('police')) result = 'SI / Constable / Defence';
+  else if (slug.includes('lic') || t.includes('lic')) result = 'AAO / ADO / Assistant';
+  else if (slug.includes('teaching') || t.includes('teaching') || t.includes('ctet') || t.includes('dsc')) result = 'TET / CTET / DSC';
+  else if (slug.includes('jee') || t.startsWith('jee')) result = 'Main / Advanced';
+  else if (slug.includes('neet') || t.startsWith('neet')) result = 'Medical Entrance';
+  else if (slug.includes('cuet') || t.startsWith('cuet')) result = 'Central Universities';
+  else if (slug.includes('ap-eapcet') || t.includes('ap eapcet')) result = 'Engineering / Agriculture';
+  else if (slug.includes('tg-eapcet') || t.includes('tg eapcet')) result = 'Engineering / Agriculture';
+  else if (slug.includes('clat') || t.startsWith('clat')) result = 'Law Entrance';
+  else if (slug.includes('nda') || t.startsWith('nda')) result = 'Defence Academy';
+  else if (slug.includes('polycet') || t.includes('polycet')) result = 'Polytechnic Diploma';
+  else if (slug.includes('aprjc') || t.includes('aprjc')) result = 'Intermediate Courses';
+  else if (slug.includes('tgcet') || t.includes('tgcet')) result = 'Gurukul Schools';
+  else if (rawSub) {
+    result = rawSub
       .replace(/\s*•\s*/g, ' / ')
       .replace(/\s*,\s*/g, ' / ')
       .replace(/Certified Course/gi, '')
@@ -108,15 +122,18 @@ const getTileSubtitle = (course, fallbackSubtitle = '') => {
       .replace(/Foundation Batch/gi, '')
       .replace(/Foundation Course/gi, '')
       .trim();
+  } else {
+    result = fallbackSubtitle || course?.shortDescription || '';
   }
 
-  return fallbackSubtitle || course?.shortDescription || '';
+  if (id) subtitleCache.set(id, result);
+  return result;
 };
 
 // ========================================================
 // 2. REUSABLE PROGRAM CARD COMPONENT (4x2 EXPANDABLE TILES)
 // ========================================================
-const ProgramCard = ({
+const ProgramCard = React.memo(({
   title,
   subtitle,
   courses,
@@ -128,13 +145,12 @@ const ProgramCard = ({
   fallbackColor,
   loading,
 }) => {
+  // Always render defaultTiles instantly if courses not yet loaded to prevent any blank state
   const displayCourses =
-    courses.length > 0
+    courses && courses.length > 0
       ? isExpanded
         ? courses
         : courses.slice(0, 8)
-      : loading
-      ? []
       : defaultTiles;
 
   return (
@@ -153,7 +169,7 @@ const ProgramCard = ({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs"
+            className="bg-[#0B2545] hover:bg-[#12356B] active:scale-95 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 shadow-xs cursor-pointer"
           >
             {isExpanded ? (
               <>
@@ -209,7 +225,7 @@ const ProgramCard = ({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1"
+            className="font-bold text-[#1769D2] hover:underline inline-flex items-center gap-1 cursor-pointer"
           >
             {isExpanded ? (
               <>
@@ -232,28 +248,42 @@ const ProgramCard = ({
       )}
     </div>
   );
+});
+
+// Pre-load from sessionStorage for instantaneous 0ms display on repeat visits
+const getInitialCachedCourses = (state) => {
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = sessionStorage.getItem(`ranvi_courses_${state || 'all'}`);
+      if (raw) return JSON.parse(raw);
+    }
+  } catch (e) {}
+  return [];
 };
+
+// Module-level cached states list
+let cachedAvailableStates = [
+  'All India',
+  'Andhra Pradesh',
+  'Telangana',
+  'Karnataka',
+  'Tamil Nadu',
+  'Maharashtra',
+  'Delhi',
+  'Uttar Pradesh',
+  'Kerala',
+];
 
 export const HomePage = () => {
   const { settings } = useSiteSettings();
 
   // ----------------------------------------------------
-  // 1. STATE & DATA HOOKS
+  // 1. STATE & DATA HOOKS (WITH INSTANT CACHED FIRST PAINT)
   // ----------------------------------------------------
-  const [courses, setCourses] = useState([]);
-  const [availableStates, setAvailableStates] = useState([
-    'All India',
-    'Andhra Pradesh',
-    'Telangana',
-    'Karnataka',
-    'Tamil Nadu',
-    'Maharashtra',
-    'Delhi',
-    'Uttar Pradesh',
-    'Kerala',
-  ]);
   const [selectedState, setSelectedState] = useState('Andhra Pradesh');
-  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [courses, setCourses] = useState(() => getInitialCachedCourses('Andhra Pradesh'));
+  const [availableStates, setAvailableStates] = useState(cachedAvailableStates);
+  const [coursesLoading, setCoursesLoading] = useState(() => getInitialCachedCourses('Andhra Pradesh').length === 0);
 
   // Expanded "View All" state per coaching card
   const [expandedSection, setExpandedSection] = useState({
@@ -278,12 +308,14 @@ export const HomePage = () => {
     settings?.supportingMessage ||
     'Learn • Excel • Achieve';
 
-  // Fetch available states with silent fallback
+  // Fetch available states once with caching
   useEffect(() => {
+    let isMounted = true;
     const fetchStates = async () => {
       try {
         const res = await courseService.getAvailableStates();
-        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (isMounted && res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          cachedAvailableStates = res.data;
           setAvailableStates(res.data);
         }
       } catch (err) {
@@ -291,26 +323,38 @@ export const HomePage = () => {
       }
     };
     fetchStates();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Fetch courses whenever selectedState changes
+  // Fetch courses whenever selectedState changes (with SWR caching)
   useEffect(() => {
+    let isMounted = true;
+
+    // Check if we have cached courses for this state to show instantly
+    const cached = getInitialCachedCourses(selectedState);
+    if (cached.length > 0) {
+      setCourses(cached);
+      setCoursesLoading(false);
+    } else {
+      setCoursesLoading(true);
+    }
+
     const fetchCourses = async () => {
       try {
-        setCoursesLoading(true);
         const params = { limit: 100 };
         if (selectedState && selectedState !== 'ALL' && selectedState !== 'All India') {
           params.state = selectedState;
         }
         const res = await courseService.getCourses(params);
-        if (res?.success) {
+        if (isMounted && res?.success) {
           let list = Array.isArray(res.data?.courses)
             ? res.data.courses
             : Array.isArray(res.data)
             ? res.data
             : [];
 
-          // Client-side filter guarantee if remote backend has not re-seeded with state filters yet
           if (selectedState && selectedState !== 'ALL' && selectedState !== 'All India') {
             const stateMatches = list.filter((c) => {
               if (!c.states || c.states.length === 0) return true;
@@ -321,23 +365,43 @@ export const HomePage = () => {
             });
             list = stateMatches;
           }
+
           setCourses(list);
+          try {
+            sessionStorage.setItem(`ranvi_courses_${selectedState || 'all'}`, JSON.stringify(list));
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Failed to load courses', err);
       } finally {
-        setCoursesLoading(false);
+        if (isMounted) {
+          setCoursesLoading(false);
+        }
       }
     };
+
     fetchCourses();
+
+    return () => {
+      isMounted = false;
+    };
   }, [selectedState]);
 
   // ----------------------------------------------------
-  // 2. COURSE CATEGORIZATION & UTILITIES
+  // 2. MEMOIZED COURSE CATEGORIZATION & UTILITIES
   // ----------------------------------------------------
-  const bankersCourses = courses.filter((c) => c.division === 'BANKERS_PATH');
-  const competitiveCourses = courses.filter((c) => c.division === 'COMPETITIVE_EXAMS');
-  const entranceCourses = courses.filter((c) => c.division === 'ENTRANCE_EXAMS');
+  const bankersCourses = useMemo(
+    () => courses.filter((c) => c.division === 'BANKERS_PATH'),
+    [courses]
+  );
+  const competitiveCourses = useMemo(
+    () => courses.filter((c) => c.division === 'COMPETITIVE_EXAMS'),
+    [courses]
+  );
+  const entranceCourses = useMemo(
+    () => courses.filter((c) => c.division === 'ENTRANCE_EXAMS'),
+    [courses]
+  );
 
   // Exact fallback 8 tiles matching reference image
   const defaultBankersTiles = [

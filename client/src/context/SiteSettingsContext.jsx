@@ -140,15 +140,47 @@ const defaultSiteSettings = {
 
 const SiteSettingsContext = createContext(null);
 
+const getInitialSiteSettings = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = sessionStorage.getItem('ranvi_site_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          ...defaultSiteSettings,
+          ...parsed,
+          heroBanner: { ...defaultSiteSettings.heroBanner, ...(parsed.heroBanner || {}) },
+          contactInfo: { ...defaultSiteSettings.contactInfo, ...(parsed.contactInfo || {}) },
+          socialLinks: { ...defaultSiteSettings.socialLinks, ...(parsed.socialLinks || {}) },
+          topAnnouncement: { ...defaultSiteSettings.topAnnouncement, ...(parsed.topAnnouncement || {}) },
+          bankersPathSection: { ...defaultSiteSettings.bankersPathSection, ...(parsed.bankersPathSection || {}) },
+          competitiveExamsSection: { ...defaultSiteSettings.competitiveExamsSection, ...(parsed.competitiveExamsSection || parsed.competitiveSection || {}) },
+          entranceExamsSection: { ...defaultSiteSettings.entranceExamsSection, ...(parsed.entranceExamsSection || {}) },
+          clearPlanSection: { ...defaultSiteSettings.clearPlanSection, ...(parsed.clearPlanSection || {}) },
+          roadmapSection: { ...defaultSiteSettings.roadmapSection, ...(parsed.roadmapSection || {}) },
+          demoPolicy: { ...defaultSiteSettings.demoPolicy, ...(parsed.demoPolicy || {}) },
+        };
+      }
+    }
+  } catch (e) {}
+  return defaultSiteSettings;
+};
+
 export const SiteSettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(defaultSiteSettings);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(getInitialSiteSettings);
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem('ranvi_site_settings');
+    } catch (e) {
+      return true;
+    }
+  });
 
   const fetchSettings = async () => {
     try {
       const res = await adminService.getSiteSettings();
       if (res.success && res.data) {
-        setSettings({
+        const merged = {
           ...defaultSiteSettings,
           ...res.data,
           heroBanner: {
@@ -191,7 +223,11 @@ export const SiteSettingsProvider = ({ children }) => {
             ...defaultSiteSettings.demoPolicy,
             ...(res.data.demoPolicy || {}),
           },
-        });
+        };
+        setSettings(merged);
+        try {
+          sessionStorage.setItem('ranvi_site_settings', JSON.stringify(res.data));
+        } catch (e) {}
       }
     } catch (err) {
       console.error('Failed to load global site settings:', err);

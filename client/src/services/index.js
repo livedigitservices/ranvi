@@ -2,64 +2,95 @@ import api from './api';
 export { authService } from './authService';
 export { entranceExamService } from './entranceExamService';
 
+// Lightweight in-memory cache & in-flight request deduplicator
+const clientCache = new Map();
+const inFlightRequests = new Map();
+
+export const clearClientCache = (pattern) => {
+  if (!pattern) {
+    clientCache.clear();
+    return;
+  }
+  for (const key of clientCache.keys()) {
+    if (key.includes(pattern)) {
+      clientCache.delete(key);
+    }
+  }
+};
+
+export const cachedGet = async (url, params = {}, ttlMs = 45000) => {
+  const queryStr = new URLSearchParams(params).toString();
+  const key = queryStr ? `${url}?${queryStr}` : url;
+  const now = Date.now();
+
+  const cached = clientCache.get(key);
+  if (cached && now - cached.timestamp < ttlMs) {
+    return cached.data;
+  }
+
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key);
+  }
+
+  const promise = api.get(url, { params })
+    .then((res) => {
+      if (res && res.success) {
+        clientCache.set(key, { data: res, timestamp: Date.now() });
+      }
+      inFlightRequests.delete(key);
+      return res;
+    })
+    .catch((err) => {
+      inFlightRequests.delete(key);
+      throw err;
+    });
+
+  inFlightRequests.set(key, promise);
+  return promise;
+};
+
+const DEFAULT_AVAILABLE_STATES = [
+  'All India',
+  'Andhra Pradesh',
+  'Telangana',
+  'Karnataka',
+  'Tamil Nadu',
+  'Maharashtra',
+  'Delhi',
+  'Uttar Pradesh',
+  'Kerala',
+  'Bihar',
+  'West Bengal',
+  'Gujarat',
+  'Rajasthan',
+  'Madhya Pradesh',
+  'Punjab',
+  'Haryana',
+  'Odisha',
+];
+
 export const courseService = {
   getCourses: async (params = {}) => {
-    return api.get('/courses', { params });
+    return cachedGet('/courses', params, 60000);
   },
   getCategories: async (params = {}) => {
-    return api.get('/courses/categories', { params });
+    return cachedGet('/courses/categories', params, 120000);
   },
   getAvailableStates: async () => {
     try {
-      const res = await api.get('/courses/states');
+      const res = await cachedGet('/courses/states', {}, 300000);
       if (res && res.success && Array.isArray(res.data)) {
         return res;
       }
       return {
         success: true,
-        data: [
-          'All India',
-          'Andhra Pradesh',
-          'Telangana',
-          'Karnataka',
-          'Tamil Nadu',
-          'Maharashtra',
-          'Delhi',
-          'Uttar Pradesh',
-          'Kerala',
-          'Bihar',
-          'West Bengal',
-          'Gujarat',
-          'Rajasthan',
-          'Madhya Pradesh',
-          'Punjab',
-          'Haryana',
-          'Odisha',
-        ],
+        data: DEFAULT_AVAILABLE_STATES,
       };
     } catch (err) {
       // Graceful fallback when remote backend does not have /states route deployed yet
       return {
         success: true,
-        data: [
-          'All India',
-          'Andhra Pradesh',
-          'Telangana',
-          'Karnataka',
-          'Tamil Nadu',
-          'Maharashtra',
-          'Delhi',
-          'Uttar Pradesh',
-          'Kerala',
-          'Bihar',
-          'West Bengal',
-          'Gujarat',
-          'Rajasthan',
-          'Madhya Pradesh',
-          'Punjab',
-          'Haryana',
-          'Odisha',
-        ],
+        data: DEFAULT_AVAILABLE_STATES,
       };
     }
   },
@@ -212,29 +243,39 @@ export const adminService = {
     return api.put(`/enquiries/admin/${id}`, data);
   },
   getSiteSettings: async () => {
-    return api.get('/site-settings');
+    return cachedGet('/site-settings', {}, 60000);
   },
   updateSiteSettings: async (data) => {
+    clearClientCache('/site-settings');
     return api.put('/site-settings', data);
   },
   // Course management
   createCourse: async (data) => {
+    clearClientCache('/courses');
     return api.post('/courses', data);
   },
   updateCourse: async (id, data) => {
+    clearClientCache('/courses');
     return api.put(`/courses/${id}`, data);
   },
   deleteCourse: async (id) => {
+    clearClientCache('/courses');
     return api.delete(`/courses/${id}`);
   },
   // Lessons
   createLesson: async (data) => {
+    clearClientCache('/courses');
+    clearClientCache('/lessons');
     return api.post('/lessons', data);
   },
   updateLesson: async (id, data) => {
+    clearClientCache('/courses');
+    clearClientCache('/lessons');
     return api.put(`/lessons/${id}`, data);
   },
   deleteLesson: async (id) => {
+    clearClientCache('/courses');
+    clearClientCache('/lessons');
     return api.delete(`/lessons/${id}`);
   },
   // Mock Tests & Questions

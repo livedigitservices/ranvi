@@ -2,14 +2,24 @@ const SiteSettings = require('../models/SiteSettings');
 const { sendSuccess } = require('../utils/responseHelper');
 const { broadcastAnnouncementUpdate } = require('../utils/socketService');
 
+let cachedSettings = null;
+let lastSettingsFetch = 0;
+const SETTINGS_CACHE_TTL = 60 * 1000; // 60 seconds fast in-memory cache
+
 const getSettings = async (req, res, next) => {
   try {
-    let settings = await SiteSettings.findOne({ key: 'global_settings' });
-    if (!settings) {
-      settings = await SiteSettings.create({ key: 'global_settings' });
+    const now = Date.now();
+    if (cachedSettings && (now - lastSettingsFetch < SETTINGS_CACHE_TTL)) {
+      return sendSuccess(res, 'Site settings retrieved (cached)', cachedSettings);
     }
 
-    const settingsObj = settings.toObject();
+    let settings = await SiteSettings.findOne({ key: 'global_settings' }).lean();
+    if (!settings) {
+      settings = await SiteSettings.create({ key: 'global_settings' });
+      settings = settings.toObject();
+    }
+
+    const settingsObj = { ...settings };
     if (settingsObj.heroBanner) {
       if (!settingsObj.heroBanner.badgeText) {
         settingsObj.heroBanner.badgeText = "India's Premier Coaching for Banking & Government Exams";
@@ -26,6 +36,9 @@ const getSettings = async (req, res, next) => {
         settingsObj.heroBanner.heroImage = settingsObj.heroBanner.heroImageUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop';
       }
     }
+
+    cachedSettings = settingsObj;
+    lastSettingsFetch = Date.now();
 
     return sendSuccess(res, 'Site settings retrieved', settingsObj);
   } catch (error) {
@@ -69,6 +82,10 @@ const updateSettings = async (req, res, next) => {
       { $set: updateData },
       { new: true, upsert: true, runValidators: false, setDefaultsOnInsert: true }
     );
+
+    // Invalidate settings cache
+    cachedSettings = null;
+    lastSettingsFetch = 0;
 
     if (settings && settings.topAnnouncement) {
       broadcastAnnouncementUpdate(settings.topAnnouncement);
