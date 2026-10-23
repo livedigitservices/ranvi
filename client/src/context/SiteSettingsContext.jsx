@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { adminService } from '../services';
+import { useRealtimeEvent } from './SocketContext';
 
 const defaultSiteSettings = {
   institutionName: 'RANVI INSTITUTIONS',
@@ -202,6 +203,10 @@ export const SiteSettingsProvider = ({ children }) => {
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useRealtimeEvent('announcement:updated', () => {
+    fetchSettings();
+  });
 
   const updateGlobalSettings = async (newData) => {
     try {

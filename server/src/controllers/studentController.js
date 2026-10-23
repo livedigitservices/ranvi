@@ -79,6 +79,15 @@ const getStudentDashboard = async (req, res, next) => {
     return sendSuccess(res, 'Student dashboard data loaded', {
       user: {
         id: user._id,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        targetExam: user.targetExam,
+      },
+      profile: {
+        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,

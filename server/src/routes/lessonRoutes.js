@@ -12,8 +12,8 @@ router.get('/course/:courseId', optionalAuth, lessonController.getCourseLessons)
 router.get('/playback/:lessonId', optionalAuth, enforceSingleDevice, lessonController.getLessonPlayback);
 
 // Admin routes
-router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), lessonController.createLesson);
-router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), lessonController.updateLesson);
+router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), lessonController.createLesson);
+router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), lessonController.updateLesson);
 router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), lessonController.deleteLesson);
 
 module.exports = router;

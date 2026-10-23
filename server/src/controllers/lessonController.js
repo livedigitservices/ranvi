@@ -76,10 +76,10 @@ const getLessonPlayback = async (req, res, next) => {
     let accessType = 'LOCKED';
 
     if (req.user) {
-      // Check if admin or faculty
-      if (['SUPER_ADMIN', 'ADMIN', 'FACULTY'].includes(req.user.role)) {
+      // Check if admin
+      if (['SUPER_ADMIN', 'ADMIN'].includes(req.user.role)) {
         hasAccess = true;
-        accessType = 'ADMIN_FACULTY';
+        accessType = 'ADMIN';
       } else {
         // Check active entitlement
         const entitlement = await Entitlement.findOne({

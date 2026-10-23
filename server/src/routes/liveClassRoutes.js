@@ -9,12 +9,12 @@ const { enforceSingleDevice } = require('../middleware/deviceSession');
 router.get('/student', authenticate, enforceSingleDevice, liveClassController.getStudentLiveClasses);
 
 // Admin: get all live classes
-router.get('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), liveClassController.getAllLiveClasses);
+router.get('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), liveClassController.getAllLiveClasses);
 
 // Admin: manage live classes
-router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), liveClassController.createLiveClass);
-router.put('/:id/cancel', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), liveClassController.cancelLiveClass);
-router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'FACULTY'), liveClassController.updateLiveClass);
+router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), liveClassController.createLiveClass);
+router.put('/:id/cancel', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), liveClassController.cancelLiveClass);
+router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), liveClassController.updateLiveClass);
 router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), liveClassController.deleteLiveClass);
 
 module.exports = router;

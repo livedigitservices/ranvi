@@ -1,27 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
+import { useRealtimeEvent } from '../../context/SocketContext';
 import { BookOpen, PlayCircle, Clock, Calendar, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export const MyCoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await api.get('/students/dashboard');
-        if (res.success && res.data) {
-          setCourses(res.data.enrolledCourses || []);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const fetchCourses = useCallback(async () => {
+    try {
+      const res = await api.get('/students/dashboard');
+      if (res.success && res.data) {
+        setCourses(res.data.enrolledCourses || []);
       }
-    };
-    fetchCourses();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
+
+  useRealtimeEvent('enrollment:changed', useCallback(() => {
+    fetchCourses();
+  }, [fetchCourses]));
+
+  useRealtimeEvent('courses:updated', useCallback(() => {
+    fetchCourses();
+  }, [fetchCourses]));
 
   return (
     <div className="space-y-6">

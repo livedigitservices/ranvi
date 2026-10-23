@@ -1,5 +1,6 @@
 const Enquiry = require('../models/Enquiry');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const { emitNewEnquiryReceived, emitAdminStatsUpdate } = require('../utils/socketService');
 
 // Public: Submit enquiry or book demo
 const createEnquiry = async (req, res, next) => {
@@ -28,6 +29,9 @@ const createEnquiry = async (req, res, next) => {
       message: message || '',
       status: 'NEW',
     });
+
+    emitNewEnquiryReceived(enquiry);
+    emitAdminStatsUpdate({ reason: 'NEW_ENQUIRY' });
 
     return sendSuccess(res, 'Thank you! Your enquiry has been received. Our counselor will contact you shortly.', enquiry, 201);
   } catch (error) {

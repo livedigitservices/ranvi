@@ -3,6 +3,25 @@ const env = require('./env');
 
 let mongodInstance = null;
 
+const migrateFacultyAccounts = async () => {
+  try {
+    const db = mongoose.connection.db;
+    if (!db) return;
+    const usersCollection = db.collection('users');
+    const legacyFacultyCount = await usersCollection.countDocuments({ role: 'FACULTY' });
+    if (legacyFacultyCount > 0) {
+      console.log(`[Migration] Safely migrating ${legacyFacultyCount} legacy FACULTY account(s) to STUDENT role...`);
+      await usersCollection.updateMany(
+        { role: 'FACULTY' },
+        { $set: { role: 'STUDENT', migratedFromRole: 'FACULTY', migratedAt: new Date() } }
+      );
+      console.log(`[Migration] Successfully completed migration of FACULTY account(s) to STUDENT.`);
+    }
+  } catch (err) {
+    console.error(`[Migration Error] ${err.message}`);
+  }
+};
+
 const connectDB = async () => {
   try {
     mongoose.set('strictQuery', true);
@@ -13,6 +32,7 @@ const connectDB = async () => {
         serverSelectionTimeoutMS: 3000,
       });
       console.log(`[Database] MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
+      await migrateFacultyAccounts();
       return conn;
     } catch (primaryErr) {
       if (env.NODE_ENV === 'production') {
@@ -25,6 +45,7 @@ const connectDB = async () => {
       const uri = mongodInstance.getUri();
       const conn = await mongoose.connect(uri);
       console.log(`[Database] In-Memory MongoDB Connected at: ${uri}`);
+      await migrateFacultyAccounts();
       return conn;
     }
   } catch (error) {
@@ -44,4 +65,4 @@ const disconnectDB = async () => {
   }
 };
 
-module.exports = { connectDB, disconnectDB };
+module.exports = { connectDB, disconnectDB, migrateFacultyAccounts };

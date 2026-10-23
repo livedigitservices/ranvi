@@ -12,6 +12,11 @@ const {
   getStartOfDayInTimezone,
   cleanupExpiredAuditLogs,
 } = require('../utils/auditCleanupService');
+const {
+  emitDeviceRevocation,
+  emitStudentUpdate,
+  emitAdminStatsUpdate,
+} = require('../utils/socketService');
 
 // Admin Dashboard Summary Metrics
 const getDashboardStats = async (req, res, next) => {
@@ -135,6 +140,9 @@ const resetStudentDevice = async (req, res, next) => {
       ipAddress: req.ip || '',
     });
 
+    emitDeviceRevocation(student._id, reason || 'Administrator reset device registration');
+    emitStudentUpdate(student._id, 'DEVICE_RESET', { studentEmail: student.email });
+
     return sendSuccess(res, `Device sessions reset successfully. Student ${student.name} can now register their new device upon next login.`);
   } catch (error) {
     next(error);
@@ -162,6 +170,9 @@ const toggleStudentStatus = async (req, res, next) => {
       resourceId: student._id.toString(),
       details: { studentEmail: student.email, newStatus: student.isActive },
     });
+
+    emitStudentUpdate(student._id, 'STATUS_TOGGLED', { isActive: student.isActive });
+    emitAdminStatsUpdate();
 
     return sendSuccess(res, `Student account ${student.isActive ? 'activated' : 'suspended'} successfully`, student);
   } catch (error) {

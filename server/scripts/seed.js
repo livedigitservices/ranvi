@@ -43,7 +43,6 @@ const seedAll = async () => {
 
     console.log('[Seeder] 1. Creating Users...');
     const superAdminPassword = await User.hashPassword('RanviAdmin@2026!');
-    const facultyPassword = await User.hashPassword('RanviFaculty@2026!');
     const studentPassword = await User.hashPassword('RanviStudent@2026!');
 
     const superAdmin = await User.create({
@@ -52,15 +51,6 @@ const seedAll = async () => {
       phone: '9876543210',
       passwordHash: superAdminPassword,
       role: 'SUPER_ADMIN',
-      isActive: true,
-    });
-
-    const facultyUser = await User.create({
-      name: 'Dr. Rajesh Sharma (Ex-AGM SBI)',
-      email: 'faculty.rajesh@ranviinstitutions.com',
-      phone: '9876543211',
-      passwordHash: facultyPassword,
-      role: 'FACULTY',
       isActive: true,
     });
 
@@ -1316,7 +1306,6 @@ const seedAll = async () => {
     console.log('---------------------------------------------------------');
     console.log('✅ DATABASE SEEDING COMPLETE FOR RANVI INSTITUTIONS!');
     console.log('Super Admin: admin@ranviinstitutions.com / RanviAdmin@2026!');
-    console.log('Faculty:     faculty.rajesh@ranviinstitutions.com / RanviFaculty@2026!');
     console.log('Student:     student@ranviinstitutions.com / RanviStudent@2026!');
     console.log('---------------------------------------------------------');
 

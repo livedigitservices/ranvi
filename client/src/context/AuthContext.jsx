@@ -94,7 +94,6 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN',
-        isFaculty: user?.role === 'FACULTY',
         isStudent: user?.role === 'STUDENT',
         sessionRevokedMessage,
         clearRevokedMessage: () => setSessionRevokedMessage(''),

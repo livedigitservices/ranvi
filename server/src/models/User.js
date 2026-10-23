@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['SUPER_ADMIN', 'ADMIN', 'FACULTY', 'STUDENT'],
+    enum: ['SUPER_ADMIN', 'ADMIN', 'STUDENT'],
     default: 'STUDENT',
   },
   isActive: {
@@ -57,6 +57,14 @@ const UserSchema = new mongoose.Schema({
   targetExam: {
     type: String,
     default: '',
+  },
+  migratedFromRole: {
+    type: String,
+    default: null,
+  },
+  migratedAt: {
+    type: Date,
+    default: null,
   },
   refreshToken: {
     type: String,

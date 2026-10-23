@@ -8,6 +8,7 @@ const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 const { razorpayInstance, verifySignature, verifyWebhookSignature } = require('../config/razorpay');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const { emitEnrollmentChange, emitNewOrderPlaced } = require('../utils/socketService');
 
 // Student: Create checkout order
 const createCheckoutOrder = async (req, res, next) => {
@@ -247,6 +248,9 @@ const verifyPayment = async (req, res, next) => {
       details: { amount: order.amount, orderId: order._id, paymentId: razorpayPaymentId },
     });
 
+    emitEnrollmentChange(studentId, { itemType: order.itemType, itemId: order.itemId, validUntil });
+    emitNewOrderPlaced(order);
+
     return sendSuccess(res, 'Payment verified and course access granted successfully', {
       orderId: order._id,
       receiptNumber: order.receiptNumber,
@@ -397,6 +401,8 @@ const grantManualEntitlement = async (req, res, next) => {
       type: 'SYSTEM',
       link: '/student/my-courses',
     });
+
+    emitEnrollmentChange(studentId, { itemType, itemId, validUntil, grantedBy: 'ADMIN_MANUAL' });
 
     return sendSuccess(res, 'Manual access granted successfully', entitlement, 201);
   } catch (error) {

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminService } from '../../services';
 import { useToast } from '../../context/ToastContext';
+import { useRealtimeEvent } from '../../context/SocketContext';
 import { Users, Search, ShieldCheck, RotateCcw, Ban, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const AdminStudentsPage = () => {
@@ -27,6 +28,15 @@ export const AdminStudentsPage = () => {
   useEffect(() => {
     fetchStudents();
   }, [search]);
+
+  // Real-time synchronization for student registrations and status updates
+  useRealtimeEvent('student:registered', useCallback(() => {
+    fetchStudents();
+  }, [search]));
+
+  useRealtimeEvent('admin:student_updated', useCallback(() => {
+    fetchStudents();
+  }, [search]));
 
   const handleResetDevice = async () => {
     if (!resetModalStudent) return;

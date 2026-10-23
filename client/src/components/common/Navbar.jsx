@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, isFaculty, isStudent, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isStudent, logout } = useAuth();
   const { settings } = useSiteSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -93,16 +93,6 @@ export const Navbar = () => {
           dotBg: 'bg-amber-400',
           ringColor: 'ring-amber-400/60',
           dashboardPath: '/admin/dashboard',
-        };
-      case 'FACULTY':
-        return {
-          title: 'Faculty Mentor',
-          shortLabel: 'Faculty',
-          avatarBg: 'bg-gradient-to-br from-[#00897B] to-[#004D40]',
-          badgeBg: 'bg-teal-100 text-[#004D40] border-teal-200',
-          dotBg: 'bg-[#F4B942]',
-          ringColor: 'ring-teal-400/60',
-          dashboardPath: '/faculty/dashboard',
         };
       case 'STUDENT':
       default:
@@ -332,51 +322,6 @@ export const Navbar = () => {
                           >
                             <User className="w-4 h-4 text-slate-500" />
                             <span>Profile & Device Settings</span>
-                          </Link>
-                        </>
-                      )}
-
-                      {isFaculty && (
-                        <>
-                          <Link
-                            to="/faculty/dashboard"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-teal-50 hover:text-[#00897B] transition-colors"
-                          >
-                            <LayoutDashboard className="w-4 h-4 text-[#00897B]" />
-                            <span>Faculty Dashboard</span>
-                          </Link>
-                          <Link
-                            to="/admin/live-classes"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-teal-50 hover:text-[#00897B] transition-colors"
-                          >
-                            <Video className="w-4 h-4 text-amber-600" />
-                            <span>Live Classes (Zoom)</span>
-                          </Link>
-                          <Link
-                            to="/admin/lessons"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-teal-50 hover:text-[#00897B] transition-colors"
-                          >
-                            <BookOpen className="w-4 h-4 text-emerald-600" />
-                            <span>Recorded Lessons & Media</span>
-                          </Link>
-                          <Link
-                            to="/admin/mock-tests"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-teal-50 hover:text-[#00897B] transition-colors"
-                          >
-                            <FileCheck2 className="w-4 h-4 text-purple-600" />
-                            <span>Mock Tests & Papers</span>
-                          </Link>
-                          <Link
-                            to="/admin/enquiries"
-                            onClick={() => setProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-teal-50 hover:text-[#00897B] transition-colors"
-                          >
-                            <MessageSquare className="w-4 h-4 text-sky-600" />
-                            <span>Student Enquiries</span>
                           </Link>
                         </>
                       )}

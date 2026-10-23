@@ -1,5 +1,6 @@
 const SiteSettings = require('../models/SiteSettings');
 const { sendSuccess } = require('../utils/responseHelper');
+const { broadcastAnnouncementUpdate } = require('../utils/socketService');
 
 const getSettings = async (req, res, next) => {
   try {
@@ -68,6 +69,10 @@ const updateSettings = async (req, res, next) => {
       { $set: updateData },
       { new: true, upsert: true, runValidators: false, setDefaultsOnInsert: true }
     );
+
+    if (settings && settings.topAnnouncement) {
+      broadcastAnnouncementUpdate(settings.topAnnouncement);
+    }
 
     return sendSuccess(res, 'Site settings updated successfully', settings);
   } catch (error) {

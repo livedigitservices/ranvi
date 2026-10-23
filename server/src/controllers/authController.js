@@ -4,6 +4,7 @@ const DeviceSession = require('../models/DeviceSession');
 const AuditLog = require('../models/AuditLog');
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const { emitNewStudentRegistered } = require('../utils/socketService');
 const env = require('../config/env');
 
 const setCookieToken = (res, token) => {
@@ -68,6 +69,14 @@ const register = async (req, res, next) => {
       details: { email: user.email, name: user.name },
       ipAddress,
       userAgent,
+    });
+
+    emitNewStudentRegistered({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      createdAt: user.createdAt,
     });
 
     return sendSuccess(res, 'Registration successful', {

@@ -18,7 +18,7 @@ const startExam = async (req, res, next) => {
 
     // Access check: Free demo or active course entitlement or admin role
     let hasAccess = false;
-    if (['SUPER_ADMIN', 'ADMIN', 'FACULTY'].includes(req.user.role)) {
+    if (['SUPER_ADMIN', 'ADMIN'].includes(req.user.role)) {
       hasAccess = true;
     } else if (mockTest.isDemoFree) {
       hasAccess = true;
@@ -282,7 +282,7 @@ const getAttemptResult = async (req, res, next) => {
     }
 
     // Verify ownership or staff role
-    if (attempt.studentId.toString() !== studentId.toString() && !['SUPER_ADMIN', 'ADMIN', 'FACULTY'].includes(req.user.role)) {
+    if (attempt.studentId.toString() !== studentId.toString() && !['SUPER_ADMIN', 'ADMIN'].includes(req.user.role)) {
       return sendError(res, 'Unauthorized access to this result', 403);
     }
 

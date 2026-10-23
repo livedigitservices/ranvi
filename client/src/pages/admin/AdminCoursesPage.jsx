@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { courseService, adminService } from '../../services';
 import { useToast } from '../../context/ToastContext';
+import { useRealtimeEvent } from '../../context/SocketContext';
 import { BookOpen, Plus, Edit, Trash2, Eye, CheckCircle2, XCircle, Filter, MapPin } from 'lucide-react';
 
 export const AdminCoursesPage = () => {
@@ -50,6 +51,11 @@ export const AdminCoursesPage = () => {
   useEffect(() => {
     fetchCourses();
   }, [selectedDivision, selectedState]);
+
+  // Real-time updates for courses catalog
+  useRealtimeEvent('courses:updated', useCallback(() => {
+    fetchCourses();
+  }, [selectedDivision, selectedState]));
 
   const handleTogglePublish = async (course) => {
     try {

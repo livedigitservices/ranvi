@@ -1,9 +1,11 @@
+const http = require('http');
 const app = require('./app');
 const env = require('./config/env');
 const { connectDB } = require('./config/db');
 const User = require('./models/User');
 const seedAll = require('../scripts/seed');
 const { initAuditLogCleanupJob, stopAuditLogCleanupJob } = require('./utils/auditCleanupService');
+const { initSocket } = require('./utils/socketService');
 
 const startServer = async () => {
   try {
@@ -19,11 +21,15 @@ const startServer = async () => {
       await seedAll();
     }
 
-    const server = app.listen(env.PORT, () => {
+    const server = http.createServer(app);
+    initSocket(server);
+
+    server.listen(env.PORT, () => {
       console.log(`=======================================================`);
       console.log(`🚀 RANVI INSTITUTIONS SERVER RUNNING ON PORT ${env.PORT}`);
       console.log(`🌐 Environment: ${env.NODE_ENV}`);
       console.log(`🔗 API Base:    http://localhost:${env.PORT}/api/v1`);
+      console.log(`⚡ Real-Time:   Socket.IO Active on port ${env.PORT}`);
       console.log(`=======================================================`);
     });
 

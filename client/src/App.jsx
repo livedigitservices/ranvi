@@ -3,11 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { SiteSettingsProvider } from './context/SiteSettingsContext';
+import { SocketProvider } from './context/SocketContext';
 
 // Layouts
 import { PublicLayout } from './components/layout/PublicLayout';
 import { StudentLayout } from './components/layout/StudentLayout';
-import { FacultyLayout } from './components/layout/FacultyLayout';
 import { AdminLayout } from './components/layout/AdminLayout';
 
 // Public Pages
@@ -45,9 +45,6 @@ import { ExamResultPage } from './pages/student/ExamResultPage';
 import { StudentPaymentsPage } from './pages/student/StudentPaymentsPage';
 import { StudentProfilePage } from './pages/student/StudentProfilePage';
 
-// Faculty Portal Pages
-import { FacultyDashboardPage } from './pages/faculty/FacultyDashboardPage';
-
 // Admin Pages
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
@@ -79,14 +76,6 @@ const ProtectedStudentRoute = ({ children }) => {
   return children;
 };
 
-const ProtectedFacultyRoute = ({ children }) => {
-  const { isAuthenticated, isFaculty, isAdmin, loading } = useAuth();
-  if (loading) return <RouteLoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isFaculty && !isAdmin) return <Navigate to="/student/dashboard" replace />;
-  return children;
-};
-
 const ProtectedAdminRoute = ({ children }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
   if (loading) return <RouteLoadingSpinner />;
@@ -100,8 +89,9 @@ export function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
         <AuthProvider>
-          <SiteSettingsProvider>
-            <Routes>
+          <SocketProvider>
+            <SiteSettingsProvider>
+              <Routes>
               {/* Public Routes */}
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<HomePage />} />
@@ -148,18 +138,8 @@ export function App() {
                 <Route path="profile" element={<StudentProfilePage />} />
               </Route>
 
-              {/* Dedicated Faculty Portal */}
-              <Route
-                path="/faculty"
-                element={
-                  <ProtectedFacultyRoute>
-                    <FacultyLayout />
-                  </ProtectedFacultyRoute>
-                }
-              >
-                <Route index element={<Navigate to="/faculty/dashboard" replace />} />
-                <Route path="dashboard" element={<FacultyDashboardPage />} />
-              </Route>
+              {/* Legacy Faculty Route Redirect */}
+              <Route path="/faculty/dashboard" element={<Navigate to="/student/dashboard" replace />} />
 
               {/* Admin Management Portal */}
               <Route
@@ -189,8 +169,9 @@ export function App() {
               </Route>
             </Routes>
           </SiteSettingsProvider>
-        </AuthProvider>
-      </ToastProvider>
+        </SocketProvider>
+      </AuthProvider>
+    </ToastProvider>
     </BrowserRouter>
   );
 }

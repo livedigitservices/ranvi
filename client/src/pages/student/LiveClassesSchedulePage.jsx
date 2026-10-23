@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
+import { useRealtimeEvent } from '../../context/SocketContext';
 import { ZoomJoinButton } from '../../components/live/ZoomJoinButton';
 import { Video, Calendar, Clock, User, ShieldCheck } from 'lucide-react';
 
@@ -7,21 +8,26 @@ export const LiveClassesSchedulePage = () => {
   const [liveClasses, setLiveClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchLiveClasses = async () => {
-      try {
-        const res = await api.get('/live-classes/student');
-        if (res.success && res.data) {
-          setLiveClasses(res.data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const fetchLiveClasses = useCallback(async () => {
+    try {
+      const res = await api.get('/live-classes/student');
+      if (res.success && res.data) {
+        setLiveClasses(res.data);
       }
-    };
-    fetchLiveClasses();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchLiveClasses();
+  }, [fetchLiveClasses]);
+
+  useRealtimeEvent('live_classes:updated', useCallback(() => {
+    fetchLiveClasses();
+  }, [fetchLiveClasses]));
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-# RANVI INSTITUTIONS — ADMINISTRATOR & FACULTY USER GUIDE
+# RANVI INSTITUTIONS — ADMINISTRATOR USER GUIDE
 
 Welcome to the Ranvi Institutions administrative portal guide.
 

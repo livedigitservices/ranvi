@@ -147,7 +147,7 @@ export const Footer = () => {
             <ul className="divide-y divide-white/10 text-xs text-slate-300 font-medium">
               <li>
                 <Link to="/faculty" className="flex items-center justify-between py-2 hover:text-[#F4B942] transition-colors">
-                  <span>Faculty</span>
+                  <span>Mentors & Experts</span>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                 </Link>
               </li>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { liveClassService, courseService } from '../../services';
 import { useToast } from '../../context/ToastContext';
+import { useRealtimeEvent } from '../../context/SocketContext';
 import { ZoomJoinButton } from '../../components/live/ZoomJoinButton';
 import { Video, Plus, Calendar, Clock, User, Ban, CheckCircle2, AlertCircle, Edit, Trash2 } from 'lucide-react';
 
@@ -52,6 +53,10 @@ export const AdminLiveClassesPage = () => {
   useEffect(() => {
     fetchLiveClasses();
   }, []);
+
+  useRealtimeEvent('live_classes:updated', useCallback(() => {
+    fetchLiveClasses();
+  }, []));
 
   const handleOpenAdd = () => {
     setEditingClassId(null);

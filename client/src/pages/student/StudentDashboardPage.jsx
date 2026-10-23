@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSocket, useRealtimeEvent } from '../../context/SocketContext';
+import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
 import { ZoomJoinButton } from '../../components/live/ZoomJoinButton';
 import {
@@ -19,28 +21,66 @@ import {
   Sparkles,
   Calendar,
   Zap,
+  Radio,
+  RotateCw,
 } from 'lucide-react';
 
 export const StudentDashboardPage = () => {
   const { user } = useAuth();
+  const { isConnected } = useSocket();
+  const { success: toastSuccess, info: toastInfo } = useToast();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboard = useCallback(async (showFullLoader = false) => {
+    try {
+      if (showFullLoader) setLoading(true);
+      else setRefreshing(true);
+
+      const res = await api.get('/students/dashboard');
+      if (res.success && res.data) {
+        setDashboardData(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (showFullLoader) setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await api.get('/students/dashboard');
-        if (res.success && res.data) {
-          setDashboardData(res.data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, []);
+    fetchDashboard(true);
+
+    // Silent background sync interval (30 seconds)
+    const interval = setInterval(() => {
+      fetchDashboard(false);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchDashboard]);
+
+  // Real-Time Event Subscriptions
+  useRealtimeEvent('enrollment:changed', useCallback((payload) => {
+    fetchDashboard(false);
+    toastSuccess('Course enrollment updated live by administration!');
+  }, [fetchDashboard, toastSuccess]));
+
+  useRealtimeEvent('courses:updated', useCallback(() => {
+    fetchDashboard(false);
+  }, [fetchDashboard]));
+
+  useRealtimeEvent('live_classes:updated', useCallback((payload) => {
+    fetchDashboard(false);
+    if (payload?.action === 'CREATE') {
+      toastInfo('New live Zoom session scheduled on your timetable!');
+    }
+  }, [fetchDashboard, toastInfo]));
+
+  useRealtimeEvent('student:updated', useCallback((payload) => {
+    fetchDashboard(false);
+  }, [fetchDashboard]));
 
   if (loading) {
     return (
@@ -63,9 +103,23 @@ export const StudentDashboardPage = () => {
       <div className="bg-gradient-to-r from-[#0B1E3D] via-[#12356B] to-[#1769D2] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-[#F4B942] text-[#0B1E3D] px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-              <Award className="w-4 h-4" />
-              <span>Target: {user?.targetExam || 'Banking & Competitive Exams'}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 bg-[#F4B942] text-[#0B1E3D] px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                <Award className="w-4 h-4" />
+                <span>Target: {user?.targetExam || 'Banking & Competitive Exams'}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold">
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                <span className="text-white/90">{isConnected ? 'Live Sync Active' : 'Connecting Sync...'}</span>
+              </div>
+              <button
+                onClick={() => fetchDashboard(false)}
+                disabled={refreshing}
+                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                title="Sync Dashboard Now"
+              >
+                <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black font-heading text-white">
               Welcome Back, {user?.name}!

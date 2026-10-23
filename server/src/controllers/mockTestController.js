@@ -47,7 +47,7 @@ const getMockTestBySlug = async (req, res, next) => {
 
     let isUnlocked = test.isDemoFree;
     if (req.user) {
-      if (['SUPER_ADMIN', 'ADMIN', 'FACULTY'].includes(req.user.role)) {
+      if (['SUPER_ADMIN', 'ADMIN'].includes(req.user.role)) {
         isUnlocked = true;
       } else if (test.courseId) {
         const entitlement = await Entitlement.findOne({

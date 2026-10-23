@@ -4,6 +4,7 @@ const Notification = require('../models/Notification');
 const Course = require('../models/Course');
 const { isValidZoomUrl } = require('../utils/zoomValidator');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const { broadcastLiveClassUpdate } = require('../utils/socketService');
 
 // Student: Get upcoming authorized live classes for enrolled courses
 const getStudentLiveClasses = async (req, res, next) => {
@@ -128,6 +129,7 @@ const createLiveClass = async (req, res, next) => {
       });
     }
 
+    broadcastLiveClassUpdate('CREATE', liveClass);
     return sendSuccess(res, 'Live class scheduled successfully', liveClass, 201);
   } catch (error) {
     next(error);
@@ -149,6 +151,7 @@ const updateLiveClass = async (req, res, next) => {
       return sendError(res, 'Live class not found', 404);
     }
 
+    broadcastLiveClassUpdate('UPDATE', liveClass);
     return sendSuccess(res, 'Live class updated successfully', liveClass);
   } catch (error) {
     next(error);
@@ -184,6 +187,7 @@ const cancelLiveClass = async (req, res, next) => {
       });
     }
 
+    broadcastLiveClassUpdate('CANCEL', liveClass);
     return sendSuccess(res, 'Live class cancelled and enrolled students notified', liveClass);
   } catch (error) {
     next(error);
@@ -198,6 +202,7 @@ const deleteLiveClass = async (req, res, next) => {
     if (!liveClass) {
       return sendError(res, 'Live class not found', 404);
     }
+    broadcastLiveClassUpdate('DELETE', liveClass);
     return sendSuccess(res, 'Live class deleted successfully');
   } catch (error) {
     next(error);

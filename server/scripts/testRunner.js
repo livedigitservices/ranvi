@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { connectDB, disconnectDB } = require('../src/config/db');
+const { connectDB, disconnectDB, migrateFacultyAccounts } = require('../src/config/db');
 const User = require('../src/models/User');
 const Course = require('../src/models/Course');
 const Lesson = require('../src/models/Lesson');
@@ -22,7 +22,18 @@ const {
   getStartOfDayInTimezone,
   cleanupExpiredAuditLogs,
 } = require('../src/utils/auditCleanupService');
-const { getAuditLogs, triggerAuditLogCleanup } = require('../src/controllers/adminController');
+const { getAuditLogs, triggerAuditLogCleanup, getDashboardStats } = require('../src/controllers/adminController');
+const { getStudentDashboard } = require('../src/controllers/studentController');
+const { authorize } = require('../src/middleware/authorize');
+const {
+  broadcastCourseUpdate,
+  broadcastLiveClassUpdate,
+  broadcastMockTestUpdate,
+  emitStudentUpdate,
+  emitEnrollmentChange,
+  emitDeviceRevocation,
+  emitAdminStatsUpdate,
+} = require('../src/utils/socketService');
 const seedAll = require('./seed');
 
 const runTests = async () => {
@@ -462,6 +473,222 @@ const runTests = async () => {
       throw err;
     });
     assert(apiResponseData.success === true, 'triggerAuditLogCleanup admin endpoint returns success');
+
+    // ========================================================
+    // 13. Strictly 2 Roles: Student and Admin Only
+    // ========================================================
+    console.log('\n--- Testing Role Enforcement & Faculty Removal ---');
+    const roleEnum = User.schema.path('role').enumValues;
+    assert(
+      roleEnum.length === 3 &&
+        roleEnum.includes('STUDENT') &&
+        roleEnum.includes('ADMIN') &&
+        roleEnum.includes('SUPER_ADMIN'),
+      'User schema role enum strictly limited to STUDENT, ADMIN, SUPER_ADMIN'
+    );
+    assert(!roleEnum.includes('FACULTY'), 'Obsolete FACULTY role completely removed from User schema enum');
+
+    // Mongoose schema validation rejects any attempt to create a user with role FACULTY
+    let facultyValidationError = null;
+    try {
+      const invalidFacultyUser = new User({
+        name: 'Legacy Faculty Attempt',
+        email: 'invalid.faculty@ranvi.com',
+        passwordHash: 'dummyhash123',
+        phone: '9988776655',
+        role: 'FACULTY',
+      });
+      await invalidFacultyUser.validate();
+    } catch (err) {
+      facultyValidationError = err;
+    }
+    assert(
+      facultyValidationError !== null && facultyValidationError.name === 'ValidationError',
+      'Mongoose strictly rejects user creation with obsolete role FACULTY (enum validation error)'
+    );
+
+    // Test Safe Migration: Legacy FACULTY accounts are migrated safely to STUDENT with audit trail
+    const usersCollection = mongoose.connection.db.collection('users');
+    const legacyFacultyId = new mongoose.Types.ObjectId();
+    await usersCollection.insertOne({
+      _id: legacyFacultyId,
+      name: 'Legacy Prof. R. K. Sharma',
+      email: 'prof.sharma.legacy@ranviinstitutions.com',
+      passwordHash: '$2a$10$abcdefghijklmnopqrstuvwxyz123456',
+      phone: '9848011229',
+      role: 'FACULTY',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const rawLegacyDoc = await usersCollection.findOne({ _id: legacyFacultyId });
+    assert(
+      rawLegacyDoc !== null && rawLegacyDoc.role === 'FACULTY',
+      'Raw legacy account with role FACULTY inserted into raw collection for migration verification'
+    );
+
+    // Execute migration
+    await migrateFacultyAccounts();
+
+    const migratedUser = await User.findById(legacyFacultyId);
+    assert(migratedUser !== null, 'Migrated account preserved in database without account deletion');
+    assert(migratedUser.role === 'STUDENT', 'Legacy FACULTY account safely migrated to role STUDENT');
+    assert(migratedUser.migratedFromRole === 'FACULTY', 'Audit flag migratedFromRole recorded as FACULTY');
+    assert(migratedUser.migratedAt instanceof Date, 'Audit timestamp migratedAt recorded upon migration');
+
+    // Clean up temporary migrated user
+    await usersCollection.deleteOne({ _id: legacyFacultyId });
+
+    // ========================================================
+    // 14. Role Authorization Middleware & Access Control
+    // ========================================================
+    console.log('\n--- Testing Role Authorization & Route Guarding ---');
+    const adminGuard = authorize('SUPER_ADMIN', 'ADMIN');
+
+    // Student attempting to access admin route -> 403 Forbidden
+    let forbiddenStatusCode = null;
+    let forbiddenPayload = null;
+    let studentPassedThrough = false;
+    const mockStudentReq = { user: { _id: student._id, role: 'STUDENT' } };
+    const mockAuthGuardRes = {
+      status: (code) => {
+        forbiddenStatusCode = code;
+        return {
+          json: (p) => {
+            forbiddenPayload = p;
+          },
+        };
+      },
+    };
+
+    adminGuard(mockStudentReq, mockAuthGuardRes, () => {
+      studentPassedThrough = true;
+    });
+    assert(studentPassedThrough === false, 'Student role is blocked from admin routes');
+    assert(forbiddenStatusCode === 403, 'Student access attempt to admin routes returns HTTP 403 Forbidden');
+
+    // Admin role permitted
+    let adminPassedThrough = false;
+    const mockAdminRoleReq = { user: { role: 'ADMIN' } };
+    adminGuard(mockAdminRoleReq, mockAuthGuardRes, () => {
+      adminPassedThrough = true;
+    });
+    assert(adminPassedThrough === true, 'ADMIN role is permitted through admin authorization guard');
+
+    // Super Admin role permitted
+    let superAdminPassedThrough = false;
+    const mockSuperAdminRoleReq = { user: { role: 'SUPER_ADMIN' } };
+    adminGuard(mockSuperAdminRoleReq, mockAuthGuardRes, () => {
+      superAdminPassedThrough = true;
+    });
+    assert(superAdminPassedThrough === true, 'SUPER_ADMIN role is permitted through admin authorization guard');
+
+    // ========================================================
+    // 15. Student Dashboard Private Access & Cross-User Isolation
+    // ========================================================
+    console.log('\n--- Testing Student Dashboard Private Access & Isolation ---');
+    let student1Dashboard = null;
+    const mockStudentDashboardReq = { user: student };
+    const mockStudentDashboardRes = {
+      status: () => mockStudentDashboardRes,
+      json: (payload) => {
+        student1Dashboard = payload;
+        return mockStudentDashboardRes;
+      },
+    };
+
+    await getStudentDashboard(mockStudentDashboardReq, mockStudentDashboardRes, (err) => {
+      throw err;
+    });
+    assert(student1Dashboard !== null && student1Dashboard.success === true, 'getStudentDashboard returns success');
+    assert(
+      Array.isArray(student1Dashboard.data?.enrolledCourses) && student1Dashboard.data.enrolledCourses.length >= 1,
+      'Student 1 dashboard correctly shows their own enrolled courses'
+    );
+    assert(
+      student1Dashboard.data?.profile?.email === student.email,
+      'Student 1 dashboard profile accurately reflects student 1 identity'
+    );
+
+    // Create a separate student with zero course enrollments to test cross-user isolation
+    const isolatedStudent = await User.create({
+      name: 'Radha Krishna',
+      email: 'radha.krishna.isolated@ranvi.com',
+      passwordHash: '$2a$10$abcdefghijklmnopqrstuvwxyz123456',
+      phone: '9848099881',
+      role: 'STUDENT',
+      isActive: true,
+    });
+
+    let isolatedStudentDashboard = null;
+    const mockIsolatedReq = { user: isolatedStudent };
+    const mockIsolatedRes = {
+      status: () => mockIsolatedRes,
+      json: (payload) => {
+        isolatedStudentDashboard = payload;
+        return mockIsolatedRes;
+      },
+    };
+
+    await getStudentDashboard(mockIsolatedReq, mockIsolatedRes, (err) => {
+      throw err;
+    });
+    assert(isolatedStudentDashboard !== null && isolatedStudentDashboard.success === true, 'Isolated student dashboard returns success');
+    assert(
+      Array.isArray(isolatedStudentDashboard.data?.enrolledCourses) &&
+        isolatedStudentDashboard.data.enrolledCourses.length === 0,
+      'Isolated student dashboard returns 0 enrolled courses (zero data leakage between students)'
+    );
+
+    // Clean up isolated student
+    await User.deleteOne({ _id: isolatedStudent._id });
+
+    // ========================================================
+    // 16. Admin Dashboard Overview & Real-Time Event Dispatchers
+    // ========================================================
+    console.log('\n--- Testing Admin Dashboard Metrics & Real-Time Socket Service ---');
+    let adminOverviewData = null;
+    const mockAdminDashReq = { user: { role: 'ADMIN' } };
+    const mockAdminDashRes = {
+      status: () => mockAdminDashRes,
+      json: (payload) => {
+        adminOverviewData = payload;
+        return mockAdminDashRes;
+      },
+    };
+
+    await getDashboardStats(mockAdminDashReq, mockAdminDashRes, (err) => {
+      throw err;
+    });
+    assert(adminOverviewData !== null && adminOverviewData.success === true, 'Admin getDashboardStats controller returns HTTP success');
+    assert(
+      typeof adminOverviewData.data?.metrics?.totalStudents === 'number' &&
+        adminOverviewData.data?.metrics?.totalStudents >= 1,
+      'Admin metrics accurately calculate totalStudents count'
+    );
+    assert(
+      typeof adminOverviewData.data?.metrics?.totalCourses === 'number' &&
+        adminOverviewData.data?.metrics?.totalCourses >= 24,
+      'Admin metrics accurately calculate totalCourses count (>= 24 flagship courses)'
+    );
+    assert(
+      typeof adminOverviewData.data?.metrics?.totalRevenue === 'number',
+      'Admin metrics calculate totalRevenue based on paid orders'
+    );
+
+    // Verify real-time Socket.IO dispatchers execute without uncaught errors
+    try {
+      broadcastCourseUpdate('CREATED', { _id: 'test_course_id', title: 'Test Course' });
+      broadcastLiveClassUpdate('SCHEDULED', { _id: 'test_class_id', title: 'Test Live Class' });
+      broadcastMockTestUpdate('UPDATED', { _id: 'test_mock_id', title: 'Test Mock Test' });
+      emitStudentUpdate(student._id, 'PROFILE_UPDATED', { name: student.name });
+      emitEnrollmentChange(student._id, { itemType: 'COURSE' });
+      emitDeviceRevocation(student._id, 'TEST_SESSION_REVOKE');
+      emitAdminStatsUpdate({ reason: 'TEST_UPDATE' });
+      assert(true, 'Socket.IO event dispatchers execute safely and gracefully handle server offline state');
+    } catch (socketErr) {
+      assert(false, `Socket.IO event dispatcher threw error: ${socketErr.message}`);
+    }
 
     console.log('\n🧪 =======================================================');
     console.log(`🧪 TEST RESULTS: ${passedCount} PASSED, ${failedCount} FAILED`);

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService } from '../../services';
+import { useSocket, useRealtimeEvent } from '../../context/SocketContext';
+import { useToast } from '../../context/ToastContext';
 import {
   Users,
   BookOpen,
@@ -12,27 +14,73 @@ import {
   ShieldAlert,
   ArrowRight,
   Plus,
+  RotateCw,
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
+  const { isConnected } = useSocket();
+  const { info: toastInfo, success: toastSuccess } = useToast();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStats = useCallback(async (showFullLoader = false) => {
+    try {
+      if (showFullLoader) setLoading(true);
+      else setRefreshing(true);
+
+      const res = await adminService.getDashboardStats();
+      if (res.success && res.data) {
+        setStats(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (showFullLoader) setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await adminService.getDashboardStats();
-        if (res.success && res.data) {
-          setStats(res.data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+    fetchStats(true);
+
+    // Silent periodic refresh interval (30s)
+    const interval = setInterval(() => {
+      fetchStats(false);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchStats]);
+
+  // Real-Time Event Handlers
+  useRealtimeEvent('admin:stats_updated', useCallback(() => {
+    fetchStats(false);
+  }, [fetchStats]));
+
+  useRealtimeEvent('student:registered', useCallback((payload) => {
+    fetchStats(false);
+    if (payload?.student?.name) {
+      toastSuccess(`New student registered: ${payload.student.name}`);
+    }
+  }, [fetchStats, toastSuccess]));
+
+  useRealtimeEvent('order:placed', useCallback((payload) => {
+    fetchStats(false);
+    if (payload?.order) {
+      toastSuccess(`New order verified: ₹${payload.order.amount}`);
+    }
+  }, [fetchStats, toastSuccess]));
+
+  useRealtimeEvent('enquiry:received', useCallback((payload) => {
+    fetchStats(false);
+    if (payload?.enquiry?.fullName) {
+      toastInfo(`New enquiry from ${payload.enquiry.fullName}`);
+    }
+  }, [fetchStats, toastInfo]));
+
+  useRealtimeEvent('courses:updated', useCallback(() => {
+    fetchStats(false);
+  }, [fetchStats]));
 
   if (loading) {
     return (
@@ -52,9 +100,23 @@ export const AdminDashboardPage = () => {
       {/* Top Welcome & Quick Actions */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#12356B] font-heading">
-            Ranvi Institutions Admin Portal
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-extrabold text-[#12356B] font-heading">
+              Ranvi Institutions Admin Portal
+            </h1>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold">
+              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`}></span>
+              <span className="text-slate-600">{isConnected ? 'Live Sync Active' : 'Connecting...'}</span>
+            </div>
+            <button
+              onClick={() => fetchStats(false)}
+              disabled={refreshing}
+              className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+              title="Refresh Stats"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
             Operational dashboard for course catalog, Zoom live classes, student access, payments, and mock exams.
           </p>

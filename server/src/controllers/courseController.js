@@ -2,6 +2,7 @@ const Course = require('../models/Course');
 const Category = require('../models/Category');
 const Entitlement = require('../models/Entitlement');
 const { sendSuccess, sendError } = require('../utils/responseHelper');
+const { broadcastCourseUpdate } = require('../utils/socketService');
 
 // Public: Get all courses with filters and pagination
 const getCourses = async (req, res, next) => {
@@ -228,6 +229,8 @@ const createCourse = async (req, res, next) => {
       displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
     });
 
+    broadcastCourseUpdate('CREATE', course);
+
     return sendSuccess(res, 'Course created successfully', course, 201);
   } catch (error) {
     next(error);
@@ -243,6 +246,7 @@ const updateCourse = async (req, res, next) => {
     if (!course) {
       return sendError(res, 'Course not found', 404);
     }
+    broadcastCourseUpdate('UPDATE', course);
     return sendSuccess(res, 'Course updated successfully', course);
   } catch (error) {
     next(error);
@@ -261,11 +265,13 @@ const deleteCourse = async (req, res, next) => {
     }
     if (permanent === 'true') {
       await Course.deleteOne({ _id: course._id });
+      broadcastCourseUpdate('DELETE', course);
       return sendSuccess(res, 'Course permanently deleted successfully');
     }
     // Soft delete or unpublish
     course.isPublished = false;
     await course.save();
+    broadcastCourseUpdate('UNPUBLISH', course);
     return sendSuccess(res, 'Course unpublished successfully');
   } catch (error) {
     next(error);
